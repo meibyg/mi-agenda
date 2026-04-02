@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<!-- v_1775100720 -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mi Agenda</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#fafafa;color:#333;min-height:100vh}
+.app{max-width:960px;margin:0 auto;padding:20px 16px}
+.header{margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.header h1{font-size:19px;font-weight:600;color:#222}
+.header p{font-size:12px;color:#aaa;margin-top:2px}
+.save-indicator{font-size:11px;padding:4px 12px;border-radius:12px;background:#EAF3DE;color:#27500A;font-weight:500;transition:all .3s}
+.save-indicator.saving{background:#FAEEDA;color:#633806}
+.tabs{display:flex;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;width:fit-content;margin-bottom:20px;background:#fff;flex-wrap:wrap}
+.tab{padding:8px 18px;background:transparent;border:none;border-right:1px solid #e0e0e0;color:#888;cursor:pointer;font-size:13px;font-weight:500;font-family:inherit}
+.tab:last-child{border-right:none}
+.tab.on{background:#534AB7;color:#fff}
+.page{display:none}.page.on{display:block}
+.daynav{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.daybtn{padding:5px 14px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit;transition:all .15s}
+.daybtn.on{background:#534AB7;color:#fff;border-color:#534AB7}
+.daybtn.dot{border-color:#AFA9EC;color:#534AB7}
+.hint{font-size:11px;color:#aaa;margin-bottom:14px;padding:7px 12px;background:#f5f5f5;border-radius:8px}
+.rows{display:flex;flex-direction:column;gap:5px}
+.brow{display:flex;gap:10px;align-items:stretch}
+.tlabel{width:56px;text-align:right;flex-shrink:0;padding-top:13px}
+.tlabel span{font-size:11px;color:#aaa;font-weight:500;display:block}
+.tlabel small{font-size:10px;color:#ccc}
+.block{flex:1;display:flex;align-items:stretch;border:1.5px solid #e8e8e8;border-radius:10px;background:#fff;overflow:hidden;transition:border-color .2s,background .2s;min-height:48px}
+.cbar{width:5px;flex-shrink:0;background:#e8e8e8;transition:background .2s}
+.tinput{flex:1;border:none;outline:none;background:transparent;padding:10px;font-size:13px;font-family:inherit;color:#333;resize:none;line-height:1.5;min-height:48px}
+.tinput::placeholder{color:#ccc;font-size:12px}
+.bside{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:0 10px;border-left:1px solid #f0f0f0;flex-shrink:0;min-width:36px}
+.catdot{width:11px;height:11px;border-radius:50%;background:#ddd;cursor:pointer;border:none;flex-shrink:0;transition:transform .15s;display:block}
+.catdot:hover{transform:scale(1.3)}
+.hour-divider{display:flex;align-items:center;gap:8px;margin:10px 0 4px;padding-left:66px}
+.hour-divider span{font-size:10px;color:#ccc;font-weight:600;letter-spacing:.6px;text-transform:uppercase}
+.hour-divider::after{content:'';flex:1;height:0.5px;background:#eee}
+.cmenu{position:fixed;background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:4px;z-index:9999;display:none;min-width:135px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.cmenu.on{display:block}
+.copt{display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-radius:6px;font-size:12px;font-family:inherit;color:#333}
+.copt:hover{background:#f5f5f5}
+.cpip{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+/* daily cards */
+.daily-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.daily-card{border-radius:10px;padding:8px 12px 8px;position:relative;min-height:52px}
+.daily-card.purple{background:#f0eeff;border:1.5px solid #9b8fea}
+.daily-card.green{background:#eafaf3;border:1.5px solid #5DCAA5}
+.daily-label{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px}
+.daily-card.purple .daily-label{color:#534AB7}
+.daily-card.green .daily-label{color:#1D9E75}
+.daily-text{font-size:11px;font-weight:500;line-height:1.4;padding-right:24px}
+.daily-card.purple .daily-text{color:#3C3489}
+.daily-card.green .daily-text{color:#085041}
+.spin-btn{position:absolute;top:6px;right:8px;background:none;border:1px solid transparent;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;border-radius:6px;transition:all .15s}
+.daily-card.purple .spin-btn{color:#9b8fea}
+.daily-card.purple .spin-btn:hover{background:#e0d9ff;border-color:#9b8fea}
+.daily-card.green .spin-btn{color:#5DCAA5}
+.daily-card.green .spin-btn:hover{background:#c8f0e4;border-color:#5DCAA5}
+/* scripts */
+.scripts-wrap{display:flex;flex-direction:column;gap:10px;}
+.scripts-table{display:none}
+.scripts-table th{text-align:left;font-size:11px;font-weight:600;color:#aaa;padding:8px 10px;border-bottom:1px solid #f0f0f0;background:#fafafa;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px}
+.scripts-table td{padding:9px 10px;border-bottom:1px solid #f5f5f5;font-size:13px;vertical-align:top}
+.scripts-table tr:hover td{background:#fafafa}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+.b-borrador{background:#F1EFE8;color:#444441}.b-listo{background:#FAEEDA;color:#633806}.b-publicado{background:#EAF3DE;color:#27500A}
+.b-ig{background:#FBEAF0;color:#72243E}.b-tiktok{background:#E6F1FB;color:#0C447C}.b-ambos{background:#EEEDFE;color:#3C3489}
+.b-conexion{background:#E6F1FB;color:#0C447C}.b-autoridad{background:#EEEDFE;color:#3C3489}.b-venta{background:#EAF3DE;color:#27500A}
+.b-mindset{background:#FAEEDA;color:#633806}.b-storytelling{background:#FBEAF0;color:#72243E}.b-educacion{background:#E1F5EE;color:#085041}
+.b-lifestyle{background:#F1EFE8;color:#444441}.b-entretenimiento{background:#FAECE7;color:#4A1B0C}
+.pub-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:500;background:#EEEDFE;color:#3C3489;white-space:nowrap}
+.ibtn{background:none;border:none;cursor:pointer;padding:8px 12px;border-radius:10px;font-size:26px;color:#bbb;font-family:inherit;transition:all .15s}.ibtn.edit-btn{color:#9b8fea;}.ibtn.del-btn{color:#E24B4A;}
+.ibtn.del-btn:hover{color:#fff;background:#E24B4A}
+.ibtn.edit-btn:hover{color:#534AB7;background:#EEEDFE}
+.sfilter{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.fbtn{padding:4px 12px;border-radius:12px;border:1px solid #e0e0e0;background:#fff;color:#888;cursor:pointer;font-size:11px;font-family:inherit;font-weight:500}
+.fbtn.on{background:#534AB7;color:#fff;border-color:#534AB7}
+.addbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:14px;border:none;background:#fdde59;color:#1a1035;font-size:15px;font-weight:800;cursor:pointer;margin-top:14px;font-family:inherit;width:100%;box-shadow:0 4px 20px rgba(253,222,89,0.5);transition:transform .15s;letter-spacing:.3px;}
+.addbtn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(253,222,89,0.6);}
+.addbtn:hover{border-color:#534AB7;background:#f5f3ff}
+/* tip+hook rotativo en guiones */
+.guion-inspo{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-bottom:20px}
+.gi-card{border-radius:12px;padding:14px 16px;position:relative;min-height:80px}
+.gi-card.amber{background:#FAEEDA;border:1.5px solid #FAC775}
+.gi-card.coral{background:#fff0eb;border:1.5px solid #F0997B}
+.gi-label{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;margin-bottom:6px}
+.gi-card.amber .gi-label{color:#BA7517}
+.gi-card.coral .gi-label{color:#D85A30}
+.gi-text{font-size:13px;font-weight:500;line-height:1.6;padding-right:28px}
+.gi-card.amber .gi-text{color:#633806}
+.gi-card.coral .gi-text{color:#4A1B0C}
+.gi-tag{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-bottom:5px}
+.gi-card.coral .gi-tag{background:#F0997B;color:#fff}
+.gi-card.amber .gi-tag{background:#FAC775;color:#633806}
+.gi-spin{position:absolute;top:12px;right:10px;background:none;border:1px solid transparent;cursor:pointer;font-size:20px;line-height:1;padding:2px 5px;border-radius:8px;transition:all .15s}
+.gi-card.amber .gi-spin{color:#FAC775}
+.gi-card.amber .gi-spin:hover{background:#fde5b0;border-color:#FAC775}
+.gi-card.coral .gi-spin{color:#F0997B}
+.gi-card.coral .gi-spin:hover{background:#ffe3d5;border-color:#F0997B}
+/* sform */
+.sform{background:#f8f7ff;border:1.5px solid #d4d0f5;border-radius:12px;padding:1.25rem;margin-top:14px;display:none}
+.sform.on{display:block}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.fgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.fgrid1{margin-bottom:10px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;color:#534AB7;font-weight:600;font-family:inherit}
+.fg input[type=text]{border-radius:8px;border:1.5px solid #d4d0f5;padding:9px 12px;font-size:13px;background:#fff;color:#333;font-family:inherit;outline:none;width:100%}
+.fg input[type=text]:focus{border-color:#534AB7}
+.fg select{border-radius:8px;border:1.5px solid #d4d0f5;padding:9px 12px;font-size:13px;background:#fff;color:#333;font-family:inherit;outline:none;width:100%;cursor:pointer}
+.fg select:focus{border-color:#534AB7}
+.fg textarea{border-radius:8px;border:1.5px solid #d4d0f5;padding:9px 12px;font-size:13px;background:#fff;color:#333;font-family:inherit;outline:none;width:100%;min-height:90px;resize:vertical}
+.fg textarea:focus{border-color:#534AB7}
+.form-section{font-size:10px;font-weight:700;color:#9b8fea;letter-spacing:.7px;text-transform:uppercase;margin:14px 0 8px;border-bottom:1px solid #e8e4ff;padding-bottom:5px}
+.fact{display:flex;gap:8px;margin-top:14px}
+.bp{padding:9px 22px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit}
+.bp:hover{background:#3C3489}
+.bs{padding:9px 16px;background:transparent;border:1.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;color:#888;font-family:inherit}
+/* modal confirmacion */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:99999;display:flex;align-items:center;justify-content:center}
+.modal-box{background:#fff;border-radius:14px;padding:24px 28px;max-width:300px;width:90%;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.modal-title{font-size:15px;font-weight:600;color:#222;margin-bottom:6px}
+.modal-sub{font-size:13px;color:#888;margin-bottom:20px;line-height:1.5}
+.modal-btns{display:flex;gap:10px;justify-content:center}
+.modal-cancel{padding:8px 20px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#888;cursor:pointer;font-size:13px;font-family:inherit}
+.modal-ok{padding:8px 20px;border-radius:8px;border:none;background:#E24B4A;color:#fff;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit}
+/* resumen */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1.5rem}
+.sc{background:#fff;border:1px solid #f0f0f0;border-radius:10px;padding:14px 16px}
+.sn{font-size:26px;font-weight:600;color:#222}
+.sl{font-size:11px;color:#aaa;margin-top:3px}
+.drow{display:flex;gap:10px;align-items:center;padding:9px 14px;border-radius:10px;border:1px solid #f0f0f0;background:#fff;margin-bottom:5px}
+.dn{font-size:13px;font-weight:500;width:80px;flex-shrink:0}
+.pb{flex:1;height:6px;border-radius:3px;background:#f0f0f0;overflow:hidden}
+.pf{height:100%;border-radius:3px;background:#534AB7;transition:width .3s}
+.pf.full{background:#34c78a}
+.dp{font-size:11px;color:#aaa;width:60px;text-align:right;flex-shrink:0}
+.catcard{padding:12px 14px;border-radius:10px;border:1.5px solid}
+.sec-title{font-size:13px;font-weight:600;color:#333;margin-bottom:10px}
+/* semanas pasadas */
+.semana-card{background:#fff;border:1px solid #f0f0f0;border-radius:12px;margin-bottom:12px;overflow:hidden}
+.semana-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .15s}
+.semana-header:hover{background:#fafafa}
+.semana-titulo{font-size:14px;font-weight:600;color:#534AB7}
+.semana-fecha{font-size:11px;color:#aaa;margin-top:2px}
+.semana-body{display:none;padding:14px 16px}
+.semana-body.open{display:block}
+.semana-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px;margin-bottom:12px}
+.semana-stat{background:#f8f7ff;border-radius:8px;padding:10px 12px;text-align:center}
+.semana-stat-n{font-size:18px;font-weight:600;color:#534AB7}
+.semana-stat-l{font-size:10px;color:#aaa;margin-top:2px}
+.semana-dias{display:grid;gap:5px}
+.semana-dia-row{display:flex;gap:8px;align-items:center;padding:6px 10px;border-radius:8px;background:#fafafa}
+.semana-dia-nombre{font-size:12px;font-weight:500;width:70px;flex-shrink:0;color:#333}
+.semana-dia-bloques{font-size:12px;color:#888;flex:1}
+.semana-del-btn{background:none;border:none;cursor:pointer;font-size:11px;color:#ccc;font-family:inherit;padding:3px 8px;border-radius:6px}
+.semana-del-btn:hover{color:#E24B4A;background:#FCEBEB}
+.semana-chevron{font-size:14px;color:#aaa;transition:transform .2s}
+.semana-chevron.open{transform:rotate(180deg)}
+/* inspiracion */
+.inspo-section-title{font-size:14px;font-weight:600;color:#333;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+.inspo-section-title::after{content:'';flex:1;height:0.5px;background:#eee}
+.inspo-list{display:grid;gap:8px}
+.inspo-item{background:#fff;border:1px solid #f0f0f0;border-radius:10px;padding:12px 14px;display:flex;align-items:start;gap:10px}
+.inspo-num{font-size:11px;font-weight:700;color:#534AB7;flex-shrink:0;min-width:24px}
+.inspo-text{font-size:13px;color:#333;line-height:1.5;flex:1}
+.copy-btn{background:none;border:none;cursor:pointer;font-size:11px;color:#534AB7;font-family:inherit;padding:2px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+.copy-btn:hover{background:#EEEDFE}
+.hook-tag{display:inline-block;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-right:6px;flex-shrink:0}
+.tag-problema{background:#FBEAF0;color:#72243E}
+.tag-secreto{background:#EEEDFE;color:#3C3489}
+.tag-historia{background:#E1F5EE;color:#085041}
+.tag-numero{background:#FAEEDA;color:#633806}
+.tag-pregunta{background:#E6F1FB;color:#0C447C}
+.tag-error{background:#FCEBEB;color:#A32D2D}
+
+/* ── DAYBTN REAL DATES ── */
+.daybtn{display:flex;flex-direction:column;align-items:center;padding:8px 12px;min-width:48px;border-radius:12px;border:1px solid #eee;background:#fff;cursor:pointer;transition:all .15s;}
+.daybtn-short{font-size:10px;font-weight:600;color:#aaa;}
+.daybtn.on .daybtn-short{color:#fff;}
+.daybtn-date{font-size:18px;font-weight:700;color:#333;line-height:1.2;}
+.daybtn.on .daybtn-date{color:#fff;}
+.daybtn.on{background:#534AB7;border-color:#534AB7;}
+
+/* ── CALENDARIO ── */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#fff;border-bottom:1px solid #f0f0f0;}
+.cal-nav-btn{width:32px;height:32px;border-radius:50%;border:1px solid #eee;background:#fff;font-size:18px;color:#534AB7;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.cal-month-label{font-size:16px;font-weight:700;color:#222;}
+.cal-days-hdr{display:grid;grid-template-columns:repeat(7,1fr);padding:8px 12px 4px;background:#fff;}
+.cdl{text-align:center;font-size:10px;font-weight:600;color:#aaa;}
+.cdl.we{color:#E24B4A;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:4px 12px 12px;background:#fff;}
+.cal-cell{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;position:relative;}
+.cal-cell:hover{background:#f0eeff;}
+.cal-cell.other{opacity:0.2;cursor:default;}
+.cal-cell.today{background:#534AB7;}
+.cal-cell.today .ccn{color:#fff;font-weight:800;font-size:14px;}
+.cal-cell.sel{background:#534AB7;border:2px solid #3d35a0;}
+.cal-cell.sel .ccn{color:#fff;font-weight:800;font-size:14px;}
+.cal-cell.we-cell .ccn{color:#E24B4A;}
+.ccn{font-size:12px;font-weight:500;color:#333;line-height:1;}
+.cal-dots{display:flex;gap:2px;margin-top:2px;justify-content:center;}
+.cal-dot{width:4px;height:4px;border-radius:50%;}
+.cal-preview{margin:0 12px 12px;background:#f8f7ff;border-radius:12px;padding:12px 14px;}
+.cal-preview-title{font-size:12px;font-weight:700;color:#534AB7;margin-bottom:8px;}
+.cal-preview-empty{font-size:11px;color:#ccc;text-align:center;padding:8px;}
+.cal-preview-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.cal-preview-hour{font-size:10px;color:#aaa;width:28px;flex-shrink:0;}
+.cal-preview-bar{width:4px;height:24px;border-radius:2px;flex-shrink:0;}
+.cal-preview-text{font-size:11px;color:#333;}
+.cal-goto-btn{background:#534AB7;color:#fff;font-size:11px;font-weight:600;padding:8px 14px;border-radius:8px;border:none;cursor:pointer;width:100%;margin-top:8px;}
+.cal-legend{display:flex;gap:12px;padding:8px 16px 16px;flex-wrap:wrap;}
+.cleg{display:flex;align-items:center;gap:5px;font-size:10px;color:#888;}
+.cleg-dot{width:7px;height:7px;border-radius:50%;}
+
+/* ── NOTAS & METAS ── */
+.notas-section{padding:14px 16px;}
+.notas-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.notas-section-title{font-size:14px;font-weight:700;color:#222;}
+.notas-week-label{font-size:10px;color:#9b8fea;}
+.notas-divider{height:8px;background:#f0f0f0;}
+.notas-add-btn{width:100%;border:1.5px dashed #d4d0f5;border-radius:10px;padding:10px;color:#9b8fea;font-size:12px;background:#fff;cursor:pointer;margin-top:6px;}
+.notas-new-btn{font-size:13px;font-weight:600;color:#534AB7;background:#f0eeff;padding:8px 18px;border-radius:10px;border:none;cursor:pointer;}
+.meta-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:7px;border:1px solid;cursor:pointer;}
+.meta-item.done{background:#eafaf3;border-color:#5DCAA5;}
+.meta-item.pending{background:#f8f7ff;border-color:#d4d0f5;}
+.meta-num{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;}
+.meta-item.done .meta-num{background:#1D9E75;color:#fff;}
+.meta-item.pending .meta-num{background:#534AB7;color:#fff;}
+.meta-text-el{font-size:12px;flex:1;line-height:1.4;}
+.meta-item.done .meta-text-el{color:#085041;text-decoration:line-through;}
+.meta-item.pending .meta-text-el{color:#3C3489;}
+.meta-del{font-size:14px;color:#ddd;background:none;border:none;cursor:pointer;padding:0 4px;}
+.nota-item{border-radius:10px;padding:11px 14px;margin-bottom:7px;border:1px solid;position:relative;}
+.nota-item.a{background:#FAEEDA;border-color:#f5c87a;}
+.nota-item.p{background:#f0eeff;border-color:#d4d0f5;}
+.nota-item.g{background:#eafaf3;border-color:#a8dfc8;}
+.nota-item.r{background:#FCEBEB;border-color:#E24B4A;}
+.nota-color-dot{position:absolute;top:10px;left:12px;width:8px;height:8px;border-radius:50%;cursor:pointer;}
+.nota-item.a .nota-color-dot{background:#BA7517;}
+.nota-item.p .nota-color-dot{background:#534AB7;}
+.nota-item.g .nota-color-dot{background:#1D9E75;}
+.nota-item.r .nota-color-dot{background:#E24B4A;}
+.nota-time{font-size:8px;color:#aaa;margin-bottom:4px;padding-left:16px;}
+.nota-text-el{font-size:12px;color:#444;line-height:1.5;padding-right:20px;background:none;border:none;width:100%;resize:none;font-family:inherit;}
+.nota-del{position:absolute;bottom:8px;right:10px;font-size:20px;color:#bbb;background:none;border:none;cursor:pointer;font-weight:300;line-height:1;}
+
+/* ── INSPIRACION TOGGLE ── */
+.inspo-toggle{background:#534AB7;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-top:12px;}
+.inspo-toggle-left{display:flex;align-items:center;gap:10px;}
+.inspo-toggle-icon{font-size:20px;}
+.inspo-toggle-text{font-size:13px;font-weight:700;color:#fff;}
+.inspo-toggle-sub{font-size:9px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.inspo-arrow{font-size:16px;color:rgba(255,255,255,0.6);transition:transform .2s;}
+.inspo-arrow.open{transform:rotate(90deg);}
+.inspo-panel{display:none;background:#fff;border:1px solid #d4d0f5;border-radius:0 0 12px 12px;margin-top:-8px;padding:14px;flex-direction:column;gap:10px;}
+.inspo-panel.open{display:flex;}
+.inspo-cats{display:flex;gap:6px;overflow-x:auto;margin-bottom:4px;}
+.icat{font-size:10px;padding:6px 12px;border-radius:10px;border:1px solid #eee;background:#fff;color:#aaa;font-weight:500;white-space:nowrap;cursor:pointer;}
+.icat.on{background:#f0eeff;color:#534AB7;border-color:#d4d0f5;font-weight:600;}
+.inspo-frase{background:#f0eeff;border:1px solid #d4d0f5;border-radius:10px;padding:10px 12px;margin-bottom:7px;position:relative;}
+.inspo-frase.af{background:#eafaf3;border-color:#a8dfc8;}
+.inspo-frase.hk{background:#fff0eb;border-color:#F0997B;}
+.inspo-frase.tp{background:#FAEEDA;border-color:#f5c87a;}
+.inspo-fnum{font-size:8px;font-weight:700;color:#9b8fea;margin-bottom:4px;}
+.inspo-frase.af .inspo-fnum{color:#1D9E75;}
+.inspo-frase.hk .inspo-fnum{color:#D85A30;}
+.inspo-frase.tp .inspo-fnum{color:#BA7517;}
+.inspo-ftxt{font-size:11px;color:#3C3489;line-height:1.5;padding-right:52px;}
+.inspo-frase.af .inspo-ftxt{color:#085041;}
+.inspo-frase.hk .inspo-ftxt{color:#4A1B0C;}
+.inspo-frase.tp .inspo-ftxt{color:#633806;}
+.inspo-fcopy{position:absolute;top:8px;right:8px;font-size:9px;color:#9b8fea;background:#fff;border:1px solid #d4d0f5;padding:3px 8px;border-radius:6px;cursor:pointer;}
+.inspo-more-btn{background:#f0eeff;color:#534AB7;border:1px solid #d4d0f5;border-radius:8px;padding:8px;font-size:11px;font-weight:600;cursor:pointer;width:100%;}
+
+/* ── CAL NOTE IN AGENDA ── */
+.cal-day-note{background:linear-gradient(135deg,#f0eeff,#e8e4ff);border:1.5px solid #9b8fea;border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.cal-day-note-icon{font-size:16px;flex-shrink:0;}
+.cal-day-note-label{font-size:8px;font-weight:700;color:#534AB7;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.cal-day-note-text{font-size:12px;color:#3C3489;line-height:1.5;}
+.cal-day-note-del{background:none;border:none;color:#bbb;font-size:14px;cursor:pointer;margin-left:auto;padding:0;flex-shrink:0;}
+/* cal note in preview */
+.cal-note-input-wrap{margin-top:8px;}
+.cal-note-textarea{width:100%;padding:8px 10px;border:1.5px dashed #d4d0f5;border-radius:8px;font-size:11px;font-family:inherit;resize:none;outline:none;background:#fff;color:#333;min-height:36px;box-sizing:border-box;}
+.cal-note-save-btn{margin-top:6px;background:#534AB7;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+.cal-guion-btn{margin-top:6px;background:#fdde59;color:#1a1035;border:none;border-radius:8px;padding:9px 14px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;width:100%;}
+.cal-note-existing{background:#fff;border:1px solid #d4d0f5;border-radius:8px;padding:8px 10px;font-size:11px;color:#3C3489;line-height:1.5;margin-top:8px;position:relative;padding-right:28px;}
+.cal-note-existing-label{font-size:8px;font-weight:700;color:#9b8fea;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.cal-note-del-btn{position:absolute;top:6px;right:8px;background:none;border:none;color:#ccc;font-size:14px;cursor:pointer;}
+
+/* ── DAY PICKER in guion form ── */
+.day-picker{background:#fff;border:1.5px solid #d4d0f5;border-radius:12px;overflow:hidden;margin-top:4px;}
+.dp-nav{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-bottom:1px solid #f0f0f0;}
+.dp-nav-btn{width:26px;height:26px;border-radius:50%;border:1px solid #eee;background:#fff;color:#534AB7;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dp-week-label{font-size:10px;font-weight:600;color:#534AB7;text-align:center;}
+.dp-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:10px;}
+.dp-day{border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fafafa;border:1.5px solid transparent;transition:all .1s;padding:8px 2px;}
+.dp-day.past{opacity:0.25;cursor:default;pointer-events:none;}
+.dp-day.dp-today{border-color:#d4d0f5;}
+.dp-day.dp-sel{background:#534AB7;border-color:#534AB7;}
+.dp-day.dp-sel .dp-short,.dp-day.dp-sel .dp-num{color:#fff;}
+.dp-short{font-size:9px;font-weight:600;color:#aaa;line-height:1;}
+.dp-day.dp-today .dp-short,.dp-day.dp-today .dp-num{color:#534AB7;}
+.dp-num{font-size:16px;font-weight:700;color:#333;line-height:1.2;}
+.dp-selected{padding:8px 12px 4px;background:#f8f7ff;border-top:1px solid #f0f0f0;font-size:12px;color:#534AB7;font-weight:600;text-align:center;}
+.dp-hora-wrap{padding:6px 12px 10px;background:#f8f7ff;display:flex;align-items:center;gap:8px;justify-content:center;}
+.dp-hora-label{font-size:10px;color:#9b8fea;font-weight:600;}
+.dp-hora-sel{border:1px solid #d4d0f5;border-radius:8px;padding:5px 10px;font-size:12px;font-family:inherit;color:#534AB7;background:#fff;outline:none;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div>
+      <h1>Mi Agenda</h1>
+      <p>Planifica · organiza · inspírate · sincronizado ☁️</p>
+    </div>
+    <div class="save-indicator" id="saveIndicator">✓ Todo guardado</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="goTab('agenda',this)">Semana</button>
+    <button class="tab" onclick="goTab('calendario',this)">Mes</button>
+    <button class="tab" onclick="goTab('guiones',this)">Guiones</button>
+    <button class="tab" onclick="goTab('notas',this)">Notas</button>
+    <button class="tab" onclick="goTab('resumen',this)">Resumen</button>
+    <button class="tab" onclick="goTab('semanas',this)">Historial</button>
+  </div>
+
+  <!-- AGENDA -->
+  <div id="agenda" class="page on">
+    <div class="daily-cards">
+      <div class="daily-card purple">
+        <div class="daily-label">✨ Frase del día</div>
+        <div class="daily-text" id="fraseAgenda"></div>
+        <button class="spin-btn" id="spinFrase" title="Nueva frase">↻</button>
+      </div>
+      <div class="daily-card green">
+        <div class="daily-label">🎯 Meta de la semana</div>
+        <div class="daily-text" id="metaAgenda"></div>
+        <button class="spin-btn" id="spinMeta" title="Nueva afirmación">↻</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <button onclick="prevWeek()" style="width:34px;height:34px;border-radius:50%;border:1px solid #d4d0f5;background:#fff;color:#534AB7;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">‹</button>
+      <div style="display:flex;align-items:center;gap:6px;background:#f8f7ff;border:1.5px solid #d4d0f5;border-radius:10px;padding:6px 12px;flex:1;">
+        <span style="font-size:11px;font-weight:600;color:#534AB7;white-space:nowrap">📅</span>
+        <span id="weekLabel" style="font-size:13px;color:#534AB7;font-weight:500;flex:1;"></span>
+        <button onclick="guardarSemana()" style="padding:5px 10px;border-radius:8px;border:none;background:#534AB7;color:#fff;cursor:pointer;font-size:11px;font-weight:700;font-family:inherit;white-space:nowrap;flex-shrink:0;">💾 Guardar</button>
+      </div>
+      <button onclick="nextWeek()" style="width:34px;height:34px;border-radius:50%;border:1px solid #d4d0f5;background:#fff;color:#534AB7;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;">›</button>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <div class="daynav" id="daynav" style="margin-bottom:0"></div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+        <button onclick="undoDay()" id="btnUndo" title="Deshacer" style="padding:5px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#aaa;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s">← Deshacer</button>
+        <button onclick="redoDay()" id="btnRedo" title="Rehacer" style="padding:5px 10px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#aaa;cursor:pointer;font-size:13px;font-family:inherit;transition:all .15s">Rehacer →</button>
+        <button onclick="resetDay()" style="padding:5px 12px;border-radius:8px;border:1px solid #F0997B;background:#fff0eb;color:#D85A30;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit">Reiniciar día</button>
+        <button onclick="resetWeek()" style="padding:5px 12px;border-radius:8px;border:1px solid #E24B4A;background:#FCEBEB;color:#A32D2D;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit">Reiniciar semana</button>
+      </div>
+    </div>
+    <div class="hint">✏️ Escribe qué vas a hacer &nbsp;·&nbsp; 🎨 puntito = categoría &nbsp;·&nbsp; ⭕ círculo = hecho &nbsp;·&nbsp; 💾 guardado automático</div>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <!-- GUIONES -->
+  <div id="guiones" class="page">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:15px;font-weight:600">Panel de guiones</div>
+      <div style="font-size:12px;color:#aaa" id="scnt">0 guiones</div>
+    </div>
+    <div class="sfilter" id="filtros">
+      <button class="fbtn on" onclick="filt('todos',this)">Todos</button>
+      <button class="fbtn" onclick="filt('borrador',this)">Borrador</button>
+      <button class="fbtn" onclick="filt('listo',this)">Listo</button>
+      <button class="fbtn" onclick="filt('publicado',this)">Publicado</button>
+    </div>
+    <div class="scripts-wrap" id="stbody"></div>
+    <button class="addbtn" onclick="openSF()">✏️ Agregar guion</button>
+    <div class="sform" id="sform">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:#534AB7" id="ftitle">Nuevo guion</div>
+      <div class="form-section">Cuándo publicar</div>
+      <div class="fgrid2">
+        <div class="fg" style="grid-column:span 2"><label>¿Cuándo publicas?</label>
+          <div class="day-picker" id="dayPicker">
+            <div class="dp-nav">
+              <button class="dp-nav-btn" onclick="dpPrev()">‹</button>
+              <div class="dp-week-label" id="dpWeekLabel"></div>
+              <button class="dp-nav-btn" onclick="dpNext()">›</button>
+            </div>
+            <div class="dp-days" id="dpDays"></div>
+            <div class="dp-selected" id="dpSelected">Toca un día para seleccionar</div>
+            <div class="dp-hora-wrap">
+              <span class="dp-hora-label">🕐 Hora:</span>
+              <select class="dp-hora-sel" id="fhora"><option value="">— Sin hora —</option><option>5:00am</option><option>6:00am</option><option>7:00am</option><option>8:00am</option><option>9:00am</option><option>10:00am</option><option>11:00am</option><option>12:00pm</option><option>1:00pm</option><option>2:00pm</option><option>3:00pm</option><option>4:00pm</option><option>5:00pm</option><option>6:00pm</option><option>7:00pm</option><option>8:00pm</option><option>9:00pm</option><option>10:00pm</option><option>11:00pm</option></select>
+            </div>
+          </div>
+          <input type="hidden" id="fdia">
+        </div>
+      </div>
+      <div class="form-section">Detalles</div>
+      <div class="fgrid1"><div class="fg"><label>Título *</label><input type="text" id="ft" placeholder="Ej: Cómo empecé desde cero en Instagram"></div></div>
+      <div class="fgrid3">
+        <div class="fg"><label>Plataforma</label><select id="fp"><option value="IG">Instagram</option><option value="TikTok">TikTok</option><option value="Ambas">Ambas</option></select></div>
+        <div class="fg"><label>Pilar</label><select id="fpilar"><option value="conexion">Conexión</option><option value="autoridad">Autoridad</option><option value="educacion">Educación</option><option value="venta">Venta</option><option value="mindset">Mindset</option><option value="storytelling">Storytelling</option><option value="lifestyle">Lifestyle</option><option value="entretenimiento">Entretenimiento</option></select></div>
+        <div class="fg"><label>Estado</label><select id="fs"><option value="borrador">Borrador</option><option value="listo">Listo</option><option value="publicado">Publicado</option></select></div>
+      </div>
+      <div class="fgrid1"><div class="fg"><label>Hook</label><input type="text" id="fh" placeholder="Las primeras palabras que paran el scroll..."></div></div>
+      <div class="fgrid1"><div class="fg"><label>Descripción / guion</label><textarea id="fn" placeholder="Escribe el guion completo o un resumen..."></textarea></div></div>
+      <div class="fact"><button class="bp" onclick="saveS()">Guardar guion</button><button class="bs" onclick="closeSF()">Cancelar</button></div>
+    </div>
+
+    <!-- INSPIRACION TOGGLE -->
+    <div class="inspo-toggle" id="inspoToggle" onclick="toggleInspo()" style="background:linear-gradient(135deg,#1a1035 0%,#534AB7 100%);margin-top:16px;box-shadow:0 6px 24px rgba(83,74,183,0.4);border:1.5px solid rgba(253,222,89,0.3);">
+      <div class="inspo-toggle-left">
+        <span style="font-size:32px;">✨</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#fdde59;letter-spacing:.3px;">¡No te olvides de tus hooks!</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:3px;">Tienes frases, tips y afirmaciones esperándote</div>
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">Toca aquí para abrirlos 👆</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;background:#fdde59;border-radius:8px;padding:6px 10px;">
+        <span style="font-size:9px;color:#1a1035;font-weight:800;letter-spacing:1px;">ABRIR</span>
+        <span class="inspo-arrow" id="inspoArrow" style="font-size:18px;color:#1a1035;font-weight:700;">›</span>
+      </div>
+    </div>
+    <div class="inspo-panel" id="inspoPanel">
+      <div class="inspo-cats">
+        <button class="icat on" onclick="switchInspocat('hooks',this)">🎯 Hooks</button>
+        <button class="icat" onclick="switchInspocat('tips',this)">📱 Tips</button>
+        <button class="icat" onclick="switchInspocat('frases',this)">✨ Frases</button>
+        <button class="icat" onclick="switchInspocat('afirmaciones',this)">💪 Afirmaciones</button>
+      </div>
+      <div id="inspoContent"></div>
+      <button class="inspo-more-btn" onclick="inspoMore()">↻ Ver más</button>
+    </div>
+  </div>
+
+  <!-- CALENDARIO -->
+  <div id="calendario" class="page">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+      <div class="cal-month-label" id="calMonthLabel"></div>
+      <button class="cal-nav-btn" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-days-hdr">
+      <div class="cdl">L</div><div class="cdl">M</div><div class="cdl">X</div>
+      <div class="cdl">J</div><div class="cdl">V</div>
+      <div class="cdl we">S</div><div class="cdl we">D</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-preview" id="calPreview" style="display:none;"></div>
+    <div class="cal-legend">
+      <div class="cleg"><div class="cleg-dot" style="background:#534AB7"></div>Contenido</div>
+      <div class="cleg"><div class="cleg-dot" style="background:#1D9E75"></div>Personal</div>
+      <div class="cleg"><div class="cleg-dot" style="background:#D85A30"></div>Negocio</div>
+      <div class="cleg"><div class="cleg-dot" style="background:#888"></div>Descanso</div>
+    </div>
+  </div>
+
+  <!-- NOTAS -->
+  <div id="notas" class="page">
+    <!-- METAS -->
+    <div class="notas-section">
+      <div class="notas-section-hdr">
+        <div class="notas-section-title">🎯 Metas de la semana</div>
+        <div class="notas-week-label" id="metasWeekLabel"></div>
+      </div>
+      <div id="metasList"></div>
+      <button class="notas-add-btn" onclick="addMeta()">＋ Agregar meta</button>
+    </div>
+    <div class="notas-divider"></div>
+    <!-- NOTAS RAPIDAS -->
+    <div class="notas-section">
+      <div class="notas-section-hdr">
+        <div class="notas-section-title">📝 Notas rápidas</div>
+        <button class="notas-new-btn" onclick="addNota()">＋ Nueva nota</button>
+      </div>
+      <div id="notasList"></div>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div id="resumen" class="page">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1rem">
+      <div>
+        <div class="sec-title" style="margin-bottom:2px">Resumen de la semana</div>
+        <div id="resumenWeekLabel" style="font-size:12px;color:#9b8fea;font-weight:500"></div>
+      </div>
+      <button onclick="guardarSemana()" style="padding:8px 18px;border-radius:8px;border:none;background:#534AB7;color:#fff;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit">Guardar esta semana →</button>
+    </div>
+    <div class="sgrid" id="scards"></div>
+    <div class="sec-title">Progreso por día</div>
+    <div id="dsummary"></div>
+    <div style="margin-top:1.5rem"><div class="sec-title">Por categoría</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px" id="catsum"></div></div>
+    <div style="margin-top:1.5rem"><div class="sec-title">Guiones</div>
+    <div class="sgrid" id="ssum"></div></div>
+  </div>
+
+  <!-- HISTORIAL DE SEMANAS -->
+  <div id="semanas" class="page">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <div class="sec-title">Historial de semanas</div>
+      <div style="font-size:12px;color:#aaa" id="semanasCount">0 semanas guardadas</div>
+    </div>
+    <div id="semanasList"></div>
+  </div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-ok" id="modalOk">Sí, borrar</button>
+    </div>
+  </div>
+</div>
+<div class="cmenu" id="cmenu">
+  <div class="copt" onmousedown="catMenuActive=true;setCat('contenido')"><div class="cpip" style="background:#534AB7"></div>Contenido</div>
+  <div class="copt" onmousedown="catMenuActive=true;setCat('personal')"><div class="cpip" style="background:#1D9E75"></div>Personal</div>
+  <div class="copt" onmousedown="catMenuActive=true;setCat('negocio')"><div class="cpip" style="background:#D85A30"></div>Negocio</div>
+  <div class="copt" onmousedown="catMenuActive=true;setCat('descanso')"><div class="cpip" style="background:#888780"></div>Descanso</div>
+  <div class="copt" onmousedown="catMenuActive=true;setCat(null)"><div class="cpip" style="background:#ddd"></div>Sin categoría</div>
+</div>
+
+
+<script>
+// ── DATOS ─────────────────────────────────────────────────
+var FRASES=[
+'Tu historia es tu mayor activo. No la escondas, cuéntala.',
+'No necesitas ser perfecta para empezar. Necesitas empezar para ser mejor.',
+'El algoritmo favorece a las que publican. Publica.',
+'Una creadora consistente siempre gana a una creadora perfecta.',
+'Tu audiencia no busca a alguien sin defectos. Busca a alguien real.',
+'Cada reel que publicas es una semilla. Dale tiempo.',
+'El miedo a publicar cuesta más que publicar con miedo.',
+'No compitas con otras creadoras. Inspírate en ellas.',
+'La mujer que eres hoy construye la marca que serás mañana.',
+'Haz el contenido que tú hubieras necesitado hace 3 años.',
+'Tu proceso vale tanto como tus resultados. Muéstralo.',
+'La consistencia no es sexy, pero es lo que construye imperios.',
+'No esperes tener 10K seguidores para actuar como creadora. Actúa ahora.',
+'El mejor momento para publicar fue ayer. El segundo mejor es ahora.',
+'Tu acento, tu historia, tu forma de hablar es tu diferenciador. No lo cambies.',
+'Las mujeres que más admiras también tuvieron días en que no querían grabar.',
+'Pequeños pasos todos los días crean grandes resultados.',
+'Eres la solución que alguien está buscando hoy.',
+'No publiques para el algoritmo. Publica para la persona que te necesita.',
+'Tu primera versión no tiene que ser perfecta. Tiene que existir.',
+'Las grandes marcas no nacieron perfectas. Nacieron valientes.',
+'Cada vez que apareces en cámara le estás ganando al miedo.',
+'Tu audiencia no quiere verte perfecta. Quiere verte auténtica.',
+'Publicar sin ganas también es disciplina. Hazlo igual.',
+'El éxito no llega el día que lo mereces. Llega el día que no paras.',
+'No necesitas luz perfecta ni equipo costoso. Necesitas mostrarte.',
+'Alguien necesita escuchar exactamente lo que tú tienes para decir.',
+'Tu marca se construye post a post, no de golpe.',
+'El contenido que da miedo publicar es normalmente el que más conecta.',
+'Eres suficiente. Tu historia es suficiente. Empieza.',
+'Un año de consistencia hace lo que 5 años de intención no logran.',
+'Lo que publicas hoy puede cambiarle la vida a alguien mañana.',
+'No esperes sentirte lista. La preparación llega con la acción.',
+'Tu vulnerabilidad es tu mayor fortaleza como creadora.',
+'Las seguidoras no te siguen por lo que sabes. Te siguen por cómo las haces sentir.',
+'Cada "no soy suficientemente buena" es una mentira que te aleja de tu audiencia.',
+'El contenido perfecto publicado tarde siempre pierde ante el contenido real publicado ahora.',
+'No tienes que tenerlo todo resuelto para inspirar a alguien.',
+'Tus errores también son contenido. Muéstralos.',
+'La libertad financiera que buscas está al otro lado de la pantalla. Aparece.',
+'No necesitas permiso para ser una experta. Solo necesitas compartir lo que sabes.',
+'Cada día que publicas es un día que tu competencia no existe para tu audiencia.',
+'La creadora que fuiste ayer ya hizo su parte. Hoy es tu turno.',
+'El único fracaso real es no empezar.',
+'Tu contenido tiene el poder de cambiar la mentalidad de alguien hoy.',
+'Eres más influyente de lo que crees. Úsalo con propósito.',
+'No hay nadie que pueda contar tu historia como tú.',
+'Las marcas más grandes empezaron exactamente donde tú estás ahora.',
+'Confía en el proceso aunque todavía no veas los resultados.',
+'Tu audiencia te está esperando. No la hagas esperar más.',
+'Crear contenido con miedo es valiente. Crear sin publicar es rendirse.',
+'El trabajo que haces hoy es la base del éxito que celebrarás en un año.',
+'No te compares con creadoras que llevan 3 años. Compárate con quien eras hace 3 meses.',
+'Tu carisma, tu forma de explicar, tu energía es única. Nadie puede replicarlo.',
+'Hoy alguien te va a descubrir y va a decir "por fin la encontré".',
+'La constancia que nadie ve es la que produce los resultados que todos envidian.',
+'Sé la creadora que tú hubieras necesitado cuando empezabas.',
+'La diferencia entre una creadora que vende y una que no es la confianza con la que habla.',
+'No publiques para gustarle a todos. Publica para transformar a alguien.',
+'Tu negocio digital puede darte lo que ningún trabajo de 9 a 5 puede darte: libertad.',
+'Lo que tú llamas "obvio" para alguien más es la información que estaba buscando.',
+'Crear contenido es un acto de servicio. Hacerlo con miedo también cuenta.',
+'No necesitas millones de seguidores para generar miles de dólares.',
+'La autenticidad no tiene algoritmo en contra. Es lo único que siempre gana.',
+'Empezar imperfectamente es mil veces mejor que no empezar.',
+'Tu historia de lucha es la prueba de que tu audiencia puede lograrlo también.',
+'Una historia bien contada vende más que el mejor copy del mundo.',
+'Ser vista da miedo. No ser vista cuesta más.',
+'El contenido que cambió tu vida es exactamente el tipo de contenido que debes crear.',
+'Eres exactamente el tipo de creadora que alguien necesita ver hoy.',
+'No necesitas una agencia. Necesitas aparecer con consistencia.',
+'El reel que no publicaste por miedo pudo haber sido el que te cambió la vida.',
+'Tu audiencia ideal te está buscando. Facilítale encontrarte.',
+'Crear contenido no es vanidad. Es construir un legado.',
+'El dinero sigue a la confianza. Confía en lo que sabes y muéstralo.',
+'No importa cuántos seguidores tengas. Importa cuántos confían en ti.',
+'Hoy es el día que decides dejar de mirar y empezar a crear.',
+'El éxito que ves en otras creadoras también está disponible para ti.',
+'Tu historia de inmigrante, de madre, de mujer que empezó de cero es poderosa. Cuéntala.',
+'No publiques menos para protegerte del fracaso. Publica más para crear tu éxito.',
+'El algoritmo cambia. Tu relación con tu audiencia no.',
+'Cada pieza de contenido que creas es una inversión en tu futuro.',
+'No tienes que saber todo para empezar. Tienes que empezar para saber todo.',
+'Lo que hoy te parece pequeño, mañana será tu base.',
+'Tu marca personal es el activo más valioso que puedes construir.',
+'Una mujer que comparte su verdad tiene más poder que mil anuncios pagados.',
+'El mejor día para empezar era hace un año. El segundo mejor día es hoy.',
+'Crea el contenido que quisieras consumir.',
+'La versión de ti que tenías miedo de mostrar es exactamente la que conecta.',
+'Publicar es un músculo. Entre más lo ejercitas, más fácil se vuelve.',
+'No necesitas validación externa para saber que tu mensaje tiene valor.',
+'La creadora más exitosa que conoces también empezó sin saber qué hacía.',
+'Hay personas esperando tu próximo video. No las decepciones.',
+'El contenido que creas hoy es el puente entre donde estás y donde quieres estar.',
+'Tu presencia en línea es tu tienda abierta las 24 horas. Mantenla activa.',
+'Cada seguidora que ganas es alguien que decidió confiar en ti.',
+'La mujer que eres capaz de ser ya existe. Solo necesita que la muestres.'
+];
+
+var AFIRMACIONES=[
+'Soy una creadora poderosa y mi mensaje llega a quien lo necesita.',
+'Mi contenido transforma vidas y genera ingresos reales.',
+'Tengo el talento, la historia y la energía para construir mi marca.',
+'Cada día que publico me acerco más a mis metas financieras.',
+'Mi audiencia me espera y confía en lo que comparto.',
+'Soy constante, disciplinada y capaz de lograr todo lo que me propongo.',
+'Mi historia importa y merece ser contada.',
+'Estoy construyendo algo grande con cada pieza de contenido.',
+'El dinero fluye hacia mí a través de mi autenticidad.',
+'Soy digna de éxito, visibilidad y abundancia.',
+'Mi marca crece cada día porque yo aparezco cada día.',
+'No necesito permiso para brillar. Ya lo tengo.',
+'Soy la CEO de mi vida y de mi negocio digital.',
+'Cada "no" que enfrento me acerca más al "sí" que cambiará mi vida.',
+'Mi consistencia es mi superpoder.',
+'Merezco ganar dinero haciendo lo que amo.',
+'Mis palabras tienen el poder de transformar la vida de otras mujeres.',
+'Soy una empresaria digital en crecimiento constante.',
+'El éxito que visualizo ya está en camino hacia mí.',
+'Soy capaz de aprender, crecer y adaptarme a cualquier desafío.',
+'Mi contenido crea comunidad, confianza y conversiones.',
+'Atraigo oportunidades, colaboraciones y clientes ideales.',
+'Cada día soy más visible, más influyente y más libre.',
+'Publico con confianza porque mi mensaje vale la pena ser escuchado.',
+'Soy una mujer que inspira a otras mujeres a creer en sí mismas.',
+'Mi negocio digital me da libertad de tiempo y de dinero.',
+'Doy el 100% en cada video porque sé que alguien lo necesita.',
+'Soy disciplinada, creativa y completamente capaz.',
+'Mi autenticidad es mi ventaja competitiva más poderosa.',
+'Cada semana doy pasos reales hacia la vida que quiero vivir.',
+'Estoy exactamente donde necesito estar. Y desde aquí, sigo creciendo.',
+'Mi marca personal tiene un valor enorme y sigo construyéndolo.',
+'Soy merecedora de las oportunidades que llegan a mi vida.',
+'Mi audiencia crece porque le ofrezco valor real y conexión genuina.',
+'Tengo todo lo necesario para construir un negocio digital exitoso.',
+'Cada publicación que hago es un paso hacia mi libertad financiera.',
+'Soy valiente. Aparezco aunque tenga miedo.',
+'Mi contenido tiene el poder de cambiar vidas.',
+'Atraigo a las personas correctas con mi mensaje auténtico.',
+'Soy una creadora en ascenso y nada puede detener mi crecimiento.',
+'Me permito ganar, brillar y ser vista sin culpa.',
+'Mi trabajo tiene un impacto real en las personas que me siguen.',
+'Soy productiva, organizada y enfocada en mis metas.',
+'Cada día me vuelvo más experta en lo que hago.',
+'Mi negocio digital es estable, creciente y abundante.',
+'Confío en mi proceso aunque los resultados aún no sean visibles.',
+'Soy capaz de monetizar mi conocimiento, mi historia y mi experiencia.',
+'No necesito ser perfecta para impactar. Solo necesito ser real.',
+'Mi energía, mi presencia y mi mensaje son magnéticos.',
+'Soy una líder en mi nicho y mi comunidad me lo confirma cada día.',
+'Las puertas correctas se abren para mí en el momento correcto.',
+'Mi contenido genera ventas porque viene del corazón.',
+'Soy una mujer que invierte en sí misma y en su crecimiento.',
+'Tengo la claridad, la visión y la determinación para lograr mis metas.',
+'Mi presencia en redes construye un legado para mi familia.',
+'Soy abundante en ideas, en energía y en resultados.',
+'Mi marca personal refleja mi mejor versión y sigo mejorando.',
+'Soy la creadora que mis seguidoras necesitan. Estoy lista.',
+'Hoy publico con amor, con propósito y con confianza.',
+'Mi éxito no depende del algoritmo. Depende de mi consistencia.',
+'Cada video que grabo me acerca más a la vida que sueño.',
+'Soy una mujer de acción. Pienso menos y publico más.',
+'Mi comunidad me ama, me apoya y crece conmigo.',
+'Tengo el poder de transformar seguidoras en clientas con mi contenido.',
+'Soy capaz de superar cualquier bloqueo creativo.',
+'Mi historia de lucha es mi mayor historia de éxito.',
+'Soy generosa con mi conocimiento y esa generosidad vuelve a mí multiplicada.',
+'Creo con propósito, publico con confianza y crezco con consistencia.',
+'Soy imparable. Mi marca lo refleja cada día.',
+'Mis metas financieras son alcanzables y estoy en el camino correcto.',
+'Soy la primera opción para mi audiencia ideal.',
+'Cada inversión que hago en mí misma produce resultados exponenciales.',
+'Mi creatividad no tiene límites. Siempre tengo algo valioso para compartir.',
+'Soy una mujer emprendedora, libre y en constante evolución.',
+'Mi contenido tiene la capacidad de cambiar la mentalidad de mi audiencia.',
+'Hoy elijo publicar sobre procrastinar. Hoy elijo avanzar.',
+'Soy una creadora que lidera con el ejemplo.',
+'Mi marca personal es poderosa, auténtica y en crecimiento.',
+'Tengo la fortaleza para seguir aunque los días sean difíciles.',
+'Mi negocio digital me permite vivir en mis términos.',
+'Soy una mujer que inspira, motiva y transforma.',
+'Cada día que aparezco es un día que mi marca gana terreno.',
+'Soy fiel a mi proceso y confío en que los resultados llegarán.',
+'Mi voz importa. Mi historia importa. Mi contenido importa.',
+'Soy exactamente la creadora que mi audiencia necesita.',
+'Elijo la acción sobre la perfección, siempre.',
+'Soy una mujer que construye, que crea y que deja huella.',
+'Mi negocio crece porque yo crezco.',
+'Soy disciplinada con mi agenda y consecuente con mis metas.',
+'Cada reel, cada story, cada post me acerca más a mis sueños.',
+'Soy libre. Soy capaz. Soy suficiente. Soy imparable.',
+'Mi éxito inspira a otras mujeres a creer en las suyas.',
+'Hoy es un gran día para crear, para publicar y para brillar.',
+'Soy una creadora con misión: impactar vidas y generar libertad.',
+'Mi mejor contenido aún está por venir.',
+'Soy el tipo de mujer que se levanta, actúa y no se rinde.',
+'Mi marca es mi legado y lo construyo con amor cada día.'
+];
+
+var TIPS=[
+'Graba en lotes. Dedica 1 día a la semana para grabar 5-7 videos. Así nunca te quedas sin contenido.',
+'Los primeros 3 segundos lo son todo. Si no enganchas ahí, pierdes al espectador.',
+'Muestra el proceso, no solo el resultado. A la gente le encanta ver cómo llegas ahí.',
+'Responde comentarios en las primeras 2 horas de publicar. El algoritmo lo premia.',
+'Reutiliza tu contenido. Un reel puede ser una story, un carrusel y un email.',
+'Usa subtítulos siempre. El 85% de los videos se ve sin sonido.',
+'La consistencia de hora importa. Publica siempre a la misma hora.',
+'Habla de un solo tema por video. No intentes decirlo todo en un reel.',
+'Termina siempre con un CTA claro: comenta, guarda, comparte o sigue.',
+'Estudia tus métricas cada lunes. Lo que funciona, repítelo.',
+'Muestra tu cara. Los videos con cara tienen hasta 3x más alcance.',
+'El storytelling vende más que el pitch directo. Cuenta una historia primero.',
+'Crea series de contenido. "Parte 1 de 3" genera curiosidad y nuevos seguidores.',
+'Guarda tus mejores ideas en notas de voz cuando se te ocurran.',
+'No borres tus videos con poco alcance. El volumen gana.',
+'Usa el texto en pantalla desde el primer segundo. Muchos ven sin sonido.',
+'Graba en vertical siempre. El 80% del consumo es desde el teléfono.',
+'Haz preguntas en tus videos. Los comentarios aumentan el alcance orgánico.',
+'Planifica tu contenido el domingo. Entrar el lunes con un plan claro ahorra horas.',
+'No necesitas equipo costoso. Un iPhone con buena luz natural es suficiente.',
+'El gancho en texto debe aparecer en los primeros 2 segundos, no al final.',
+'Muestra resultados reales de tus clientas. La prueba social es el mejor contenido de venta.',
+'Responde DMs en las primeras 24 horas. Esos mensajes son clientes potenciales.',
+'Usa tendencias de audio pero con tu propio mensaje. No copies, adapta.',
+'Un video mediocre publicado vale más que un video perfecto que nunca salió.',
+'Crea contenido de "antes y después". Funciona en todas las categorías.',
+'Documenta tu semana real. La gente conecta más con lo cotidiano.',
+'Usa el caption para agregar contexto, no para repetir lo del video.',
+'Coloca tu CTA a 3/4 del video, no al final. La mayoría no llega al último segundo.',
+'Estudia los comentarios de tu competencia. Ahí están las preguntas reales de tu audiencia.',
+'Haz un video respondiendo la pregunta más frecuente que te hacen en DMs.',
+'Muestra tu espacio de trabajo. Humaniza tu marca y genera confianza.',
+'Crea contenido educativo que resuelva un problema específico de tu audiencia.',
+'No publiques por publicar. Cada post debe tener un propósito claro.',
+'El mejor tipo de contenido es el que tú también hubieras guardado hace 2 años.',
+'Alterna entre contenido de valor, contenido personal y contenido de venta.',
+'Usa la función de encuestas en stories para entender qué quiere tu audiencia.',
+'Colabora con otras creadoras de tu nicho. El crecimiento compartido es más rápido.',
+'Actualiza tu bio cada mes. Debe reflejar exactamente lo que haces y para quién.',
+'El primer frame de tu video es tu portada. Hazlo visualmente atractivo.',
+'Guarda los videos de competidoras que funcionan bien. Analiza por qué.',
+'Crea una carpeta de ideas en tu teléfono y agrégale algo cada día.',
+'Usa la misma paleta de colores y estilo visual para que tu perfil sea reconocible.',
+'Publica en los horarios en que tu audiencia está activa, no cuando tú tienes tiempo.',
+'Haz directos periódicamente. La conexión en vivo construye confianza más rápido.',
+'No esperes que todos tus videos sean virales. La consistencia supera la viralidad.',
+'Si un video funcionó bien, haz una segunda parte. La audiencia ya está enganchada.',
+'Muestra los números cuando puedas. "Esto me generó $500" siempre detiene el scroll.',
+'El contenido que cuentas desde la emoción conecta más que el que cuentas desde la lógica.',
+'Habla directamente a UNA persona, no a miles. Dí "tú" no "ustedes".',
+'Estudia tu mejor video cada mes. Entiende qué lo hizo funcionar y repite ese patrón.',
+'Crea una lista de 30 ideas de contenido el primer día del mes. Nunca más te quedarás sin ideas.',
+'Muestra lo que estás aprendiendo, no solo lo que ya sabes.',
+'El contenido vulnerable (donde muestras errores) genera más guardados que el contenido perfecto.',
+'Usa hashtags específicos de nicho, no hashtags genéricos con millones de posts.',
+'Haz un "día en mi vida" mensualmente. Es el tipo de contenido con más vistas orgánicas.',
+'Cuando no tengas idea qué publicar, ve a tu DMs. Ahí está tu próximo video.',
+'El algoritmo no castiga la calidad. Castiga la irregularidad.',
+'Crea expectativa antes de publicar algo importante. Las stories previas aumentan el alcance.',
+'Nunca pidas seguir tu cuenta directamente. Ofrece valor y las personas siguen solas.',
+'Muestra el detrás de cámara. La audiencia quiere saber cómo se hace lo que haces.',
+'Usa el mismo intro en tus videos. La repetición crea reconocimiento de marca.',
+'Responde a los comentarios con otro video. Es la forma más rápida de crear nuevo contenido.',
+'Un perfil con 1000 seguidores comprometidos vale más que uno con 100K que no interactúan.',
+'El mejor CTA no es "sígueme". Es "guarda esto para cuando lo necesites".',
+'Agenda 30 minutos diarios exclusivamente para responder comentarios y DMs.',
+'Haz un reel mostrando "lo que nadie te cuenta sobre [tu tema]". Siempre funciona.',
+'Tu perfil es una tienda. El visitante decide en 3 segundos si se queda. Optimízalo.',
+'Crea contenido que la gente quiera guardar, no solo ver. Los guardados son el mejor indicador.',
+'Cuando tengas un día sin inspiración, reposta contenido antiguo que funcionó bien.',
+'El video más poderoso que puedes grabar es el de tu historia real. Desde cero hasta hoy.',
+'Muestra cuánto cobras por tus servicios o productos. La transparencia genera confianza.',
+'No le tengas miedo a repetir temas. Tu audiencia nueva no vio lo que publicaste hace 6 meses.',
+'El contenido de "errores que cometí" siempre supera al de "cómo tener éxito".',
+'Usa la palabra "gratis" en tu contenido educativo. Es la palabra que más detiene el scroll.',
+'Conecta tu contenido con las emociones de tu audiencia: miedo, esperanza, frustración, orgullo.',
+'Crea un pin fijo en tu perfil que explique quién eres, qué haces y cómo pueden trabajar contigo.',
+'El mejor momento para publicar es cuando tienes algo genuino que decir.',
+'Haz preguntas al final de tu caption. Las preguntas fáciles generan más comentarios.',
+'Publica una historia de fracaso una vez al mes. La vulnerabilidad es el contenido más compartido.',
+'No necesitas guion perfecto. La energía y la autenticidad superan siempre al guion.',
+'Crea un "highlight" en Instagram para cada tema que tratas. Es tu biblioteca de contenido.',
+'El video de "un día usando mi propio método" es el que más ventas genera.',
+'Haz encuestas semanales en stories. Eso te dice exactamente qué contenido crear.',
+'Muestra tus herramientas. "Lo que uso para [resultado]" es uno de los contenidos más guardados.',
+'Si algo funcionó en TikTok, ponlo en Reels. Si funcionó en Reels, ponlo en TikTok.',
+'Crea contenido para principiantes. Siempre hay personas que están empezando.',
+'Habla de los miedos de tu audiencia. El contenido que nombra el miedo siempre conecta.',
+'Haz un reel mensual con tus aprendizajes del mes. La audiencia ama el crecimiento en tiempo real.',
+'No edites demasiado tu voz o apariencia. La autenticidad sin filtro es lo que más conecta hoy.',
+'Crea un "volumen 2" de tu video más exitoso. El formato ya probó que funciona.',
+'El conteo regresivo para un lanzamiento en stories es la estrategia de venta más efectiva.',
+'Usa tu nombre y apellido en tu bio y en tus videos. Construye marca personal, no solo cuenta.',
+'Muestra el antes de tus clientas o seguidoras. Nada vende más que la transformación real.',
+'Crea contenido sobre lo que te preguntarán en 6 meses. Adelántate a las dudas de tu audiencia.',
+'La mejor estrategia de contenido es ser la persona más útil de tu nicho.',
+'Sé constante con tu nicho durante 90 días antes de cambiar de estrategia.',
+'El mejor contenido no es el más producido. Es el más honesto.'
+];
+
+var HOOKS=[
+{tag:'problema', text:'Nadie te dice esto cuando empiezas a crear contenido...'},
+{tag:'secreto', text:'El truco que usan los creadores con millones de seguidores para grabar en 1 hora a la semana'},
+{tag:'historia', text:'Hace 2 años no tenía ni 500 seguidores. Hoy vivo de Instagram. Te cuento qué cambió.'},
+{tag:'número', text:'5 errores que estás cometiendo en tus reels (y cómo corregirlos hoy)'},
+{tag:'pregunta', text:'¿Por qué tus videos tienen pocas vistas aunque sigues todos los consejos?'},
+{tag:'error', text:'Paré de publicar por 3 semanas y esto le pasó a mi cuenta...'},
+{tag:'secreto', text:'La estrategia de contenido que uso para vender sin vender'},
+{tag:'problema', text:'Si llevas meses publicando y no creces, esto te va a cambiar la mente'},
+{tag:'número', text:'3 tipos de contenido que siempre funcionan sin importar el algoritmo'},
+{tag:'historia', text:'Me daba vergüenza aparecer en cámara. Lo que me ayudó a superarlo fue esto...'},
+{tag:'pregunta', text:'¿Cuánto tiempo más vas a esperar para empezar a monetizar tu cuenta?'},
+{tag:'número', text:'Los 7 pilares de contenido que necesitas para nunca quedarte sin ideas'},
+{tag:'secreto', text:'Lo que separa a una creadora que gana $1K al mes de una que gana $10K'},
+{tag:'problema', text:'El algoritmo no está en tu contra. Estás cometiendo este error.'},
+{tag:'historia', text:'Publiqué todos los días por 30 días. Esto fue lo que pasó.'},
+{tag:'pregunta', text:'¿Sabías que el 90% de creadoras comete este error en sus primeros 3 segundos?'},
+{tag:'error', text:'Dejé de seguir tendencias y mi cuenta creció el doble. Aquí el porqué.'},
+{tag:'número', text:'4 frases que puedes usar hoy para que tu audiencia compre sin sentirse presionada'},
+{tag:'historia', text:'Estaba a punto de borrar mi cuenta. Lo que pasó después lo cambió todo.'},
+{tag:'problema', text:'Tienes seguidores pero no ventas. Este es el problema real.'},
+{tag:'secreto', text:'El tipo de contenido que nunca falla y casi nadie usa'},
+{tag:'número', text:'2 minutos al día. Así organizo toda mi semana de contenido.'},
+{tag:'pregunta', text:'¿Qué pasaría si publicaras todos los días por 21 días seguidos?'},
+{tag:'error', text:'Contraté a alguien para hacer mi contenido y perdí el 40% de mis seguidores'},
+{tag:'historia', text:'La primera vez que aparecí en cámara me temblaba la voz. Hoy tengo 100K.'},
+{tag:'problema', text:'Si sientes que publicas en el vacío, necesitas escuchar esto.'},
+{tag:'número', text:'6 cosas que hago cada domingo para tener contenido toda la semana'},
+{tag:'secreto', text:'Por qué tus reels de esfuerzo tienen menos views que los que grabas en 10 minutos'},
+{tag:'pregunta', text:'¿Estás creando contenido para tu ego o para tu audiencia?'},
+{tag:'error', text:'Borré mis 5 mejores videos porque no eran perfectos. El mayor error de mi vida.'},
+{tag:'historia', text:'Empecé a crear contenido desde un cuarto rentado. Aquí lo que aprendí.'},
+{tag:'problema', text:'Llevas meses en redes y sigues sin monetizar. Aquí el problema que nadie nombra.'},
+{tag:'secreto', text:'El formato de video que genera más guardados en cualquier nicho'},
+{tag:'número', text:'10 ideas de contenido que puedes grabar hoy sin editar nada'},
+{tag:'pregunta', text:'¿Por qué tu cuenta no crece aunque publicas todos los días?'},
+{tag:'historia', text:'Gané mis primeros $1,000 online con 800 seguidores. Así fue.'},
+{tag:'error', text:'Estuve 6 meses sin crecer porque cometí este error. Aprende de mí.'},
+{tag:'problema', text:'El contenido que creas no convierte porque le falta este elemento.'},
+{tag:'secreto', text:'La razón por la que las creadoras más pequeñas venden más que las grandes'},
+{tag:'número', text:'3 preguntas que debes hacerte antes de grabar cualquier video'},
+{tag:'pregunta', text:'¿Cuál es la diferencia entre una creadora con 5K y una con 500K seguidores?'},
+{tag:'historia', text:'Me rechazaron en 3 colaboraciones. Lo que hice después me cambió la carrera.'},
+{tag:'error', text:'Seguí todos los consejos de crecimiento y perdí autenticidad. La lección más cara.'},
+{tag:'problema', text:'Tu audiencia no te compra porque no confía en ti aún. Esto lo resuelve.'},
+{tag:'secreto', text:'El sistema de planificación de contenido que usan las creadoras de 7 cifras'},
+{tag:'número', text:'5 palabras que debes incluir en tus hooks para duplicar tu retención'},
+{tag:'pregunta', text:'¿Qué tipo de contenido hace que la gente siga a alguien para siempre?'},
+{tag:'historia', text:'Pasé de 200 a 20K seguidores en 3 meses. Esto fue lo único que cambié.'},
+{tag:'error', text:'Me obsesioné con las métricas y dejé de crear buen contenido. Mi peor época.'},
+{tag:'problema', text:'Si tu cuenta está estancada hace meses, este video es para ti.'},
+{tag:'secreto', text:'Cómo convertir un video ordinario en uno que para el scroll en 2 segundos'},
+{tag:'número', text:'7 tipos de stories que generan más ventas que cualquier reel'},
+{tag:'pregunta', text:'¿Qué pasaría si tu próximo video cambiara la vida de alguien?'},
+{tag:'historia', text:'Fallé mi primer lanzamiento. Aquí lo que cambié para el segundo.'},
+{tag:'error', text:'Tardé 2 años en aprender lo que te voy a enseñar en 60 segundos.'},
+{tag:'problema', text:'Tienes buen contenido pero nadie lo ve. Este es el problema real.'},
+{tag:'secreto', text:'El elemento invisible que tienen todos los videos virales'},
+{tag:'número', text:'4 errores en el primer segundo de tu video que te cuestan seguidores'},
+{tag:'pregunta', text:'¿Cuánto dinero estás dejando sobre la mesa por no tener esto claro?'},
+{tag:'historia', text:'Renuncié a mi trabajo con 1,200 seguidores. La historia que nadie me creyó.'},
+{tag:'error', text:'Creé contenido para el algoritmo durante 1 año. Lo que perdí en el proceso.'},
+{tag:'problema', text:'No es falta de talento. Es falta de sistema. Aquí el sistema.'},
+{tag:'secreto', text:'Por qué algunas creadoras crecen 10 veces más rápido con menos contenido'},
+{tag:'número', text:'30 ideas de contenido para el próximo mes en menos de 5 minutos'},
+{tag:'pregunta', text:'¿Qué crees que es lo que más conecta con tu audiencia? La respuesta te va a sorprender.'},
+{tag:'historia', text:'El video que grabé llorando fue el que más me hizo crecer. Aquí por qué.'},
+{tag:'error', text:'Copié la estrategia de una gran creadora y casi pierdo mi comunidad.'},
+{tag:'problema', text:'Sabes que tienes que crear contenido pero siempre encuentras una excusa. Esto te va a ayudar.'},
+{tag:'secreto', text:'La táctica de contenido que ninguna coach de redes te va a decir porque es demasiado simple'},
+{tag:'número', text:'Las 5 métricas que realmente importan (y las 3 que debes ignorar)'},
+{tag:'pregunta', text:'¿Tu contenido inspira, educa o vende? La proporción correcta te cambia los resultados.'},
+{tag:'historia', text:'Me bloqueé creativamente por 2 meses. Lo que me sacó de ese hoyo.'},
+{tag:'error', text:'Invertí $3,000 en un curso y lo primero que me enseñaron lo tenía gratis aquí.'},
+{tag:'problema', text:'Si tienes menos de 10K seguidores, este contenido es exactamente para ti.'},
+{tag:'secreto', text:'Cómo hacer que tu audiencia espere tu próximo video con ansias'},
+{tag:'número', text:'3 cambios que hice en mi perfil que duplicaron mis solicitudes de colaboración'},
+{tag:'pregunta', text:'¿Cuál es la razón número uno por la que tu audiencia no te compra todavía?'},
+{tag:'historia', text:'Me criticaron durísimo en un video. Lo que hice con esa crítica lo cambió todo.'},
+{tag:'error', text:'Publiqué 200 videos sin estrategia. Aquí lo que aprendí de ese error.'},
+{tag:'problema', text:'No necesitas más seguidores. Necesitas esta cosa que estás ignorando.'},
+{tag:'secreto', text:'La fórmula de 3 partes que uso en todos mis reels que generan ventas'},
+{tag:'número', text:'6 formas de monetizar tu cuenta sin tener un producto propio todavía'},
+{tag:'pregunta', text:'¿Qué haría tu versión de 5 años en el futuro si pudiera hablar contigo ahora?'},
+{tag:'historia', text:'Nadie me enseñó a crear contenido. Me lo enseñó el fracaso. Aquí el resumen.'},
+{tag:'error', text:'Dejé mi cuenta 3 meses por miedo. Lo que perdí y lo que recuperé al volver.'},
+{tag:'problema', text:'Si te comparas con otras creadoras y eso te paraliza, necesitas ver esto.'},
+{tag:'secreto', text:'La verdad que nadie dice sobre crecer en redes sociales'},
+{tag:'número', text:'5 cosas que hago antes de grabar cualquier video para que funcione mejor'},
+{tag:'pregunta', text:'¿Qué tipo de creadora quieres ser en 12 meses? La respuesta define tu estrategia hoy.'},
+{tag:'historia', text:'Perdí 2,000 seguidores en una semana. Aquí qué pasó y cómo lo recuperé.'},
+{tag:'error', text:'Le presté demasiada atención a los haters y casi abandono. No cometas ese error.'},
+{tag:'problema', text:'Publicar sin dirección es como conducir sin GPS. Esto te da el mapa.'},
+{tag:'secreto', text:'Por qué las creadoras que menos saben a veces venden más que las expertas'},
+{tag:'número', text:'4 tipos de personas en tu audiencia y cómo crear contenido para cada una'},
+{tag:'pregunta', text:'¿Cuándo fue la última vez que publicaste algo que te dio miedo? Ese es el contenido que necesitas.'},
+{tag:'historia', text:'Me fui de vacaciones 2 semanas sin publicar. Lo que pasó con mi cuenta me sorprendió.'},
+{tag:'error', text:'Tardé 3 años en entender algo que te voy a explicar en este video en 2 minutos.'}
+];
+
+// ── INDICES ───────────────────────────────────────────────
+var fi=Math.floor(Math.random()*FRASES.length);
+var ai=Math.floor(Math.random()*AFIRMACIONES.length);
+var ti=Math.floor(Math.random()*TIPS.length);
+var hi=Math.floor(Math.random()*HOOKS.length);
+
+var MIXED=[];
+function buildMixed(){MIXED=FRASES.concat(AFIRMACIONES).sort(function(){return Math.random()-.5;});}
+buildMixed();
+var mi=Math.floor(Math.random()*MIXED.length);
+function updateCards(){
+  var fa=document.getElementById('fraseAgenda');if(fa)fa.textContent=MIXED[mi];
+  updateMetaCard();
+  var gt=document.getElementById('giTip');if(gt)gt.textContent=TIPS[ti];
+  var gh=document.getElementById('giHook');if(gh)gh.textContent=HOOKS[hi].text;
+  var ghtag=document.getElementById('giHookTag');if(ghtag)ghtag.textContent=HOOKS[hi].tag;
+}
+var metaCardIdx=0;
+function updateMetaCard(){
+  var el=document.getElementById('metaAgenda');if(!el)return;
+  if(!metas||metas.length===0){el.textContent='Agrega tus metas en la pestaña Notas 💪';return;}
+  el.textContent=metas[metaCardIdx%metas.length].text;
+}
+
+var _sf=document.getElementById('spinFrase');if(_sf)_sf.addEventListener('click',function(){mi=(mi+1)%MIXED.length;document.getElementById('fraseAgenda').textContent=MIXED[mi];});
+var _sm=document.getElementById('spinMeta');if(_sm)_sm.addEventListener('click',function(){if(!metas||!metas.length)return;metaCardIdx=(metaCardIdx+1)%metas.length;updateMetaCard();});
+var spinTipEl=document.getElementById('spinTip');if(spinTipEl)spinTipEl.addEventListener('click',function(){ti=(ti+1)%TIPS.length;document.getElementById('giTip').textContent=TIPS[ti];});
+var spinHookEl=document.getElementById('spinHook');if(spinHookEl)spinHookEl.addEventListener('click',function(){hi=(hi+1)%HOOKS.length;document.getElementById('giHook').textContent=HOOKS[hi].text;document.getElementById('giHookTag').textContent=HOOKS[hi].tag;});
+
+function buildInspiracion(){
+  var fl=document.getElementById('frasesList');fl.innerHTML='';
+  FRASES.forEach(function(f,i){
+    var d=document.createElement('div');d.className='inspo-item';
+    d.innerHTML='<span class="inspo-num">'+(i+1)+'</span><span class="inspo-text">'+f+'</span><button class="copy-btn" data-text="'+f.replace(/"/g,'&quot;')+'">Copiar</button>';
+    fl.appendChild(d);
+  });
+  var al=document.getElementById('afirmList');al.innerHTML='';
+  AFIRMACIONES.forEach(function(a,i){
+    var d=document.createElement('div');d.className='inspo-item';
+    d.innerHTML='<span class="inspo-num">'+(i+1)+'</span><span class="inspo-text">'+a+'</span><button class="copy-btn" data-text="'+a.replace(/"/g,'&quot;')+'">Copiar</button>';
+    al.appendChild(d);
+  });
+  var tl=document.getElementById('tipsList');tl.innerHTML='';
+  TIPS.forEach(function(t,i){
+    var d=document.createElement('div');d.className='inspo-item';
+    d.innerHTML='<span class="inspo-num">'+(i+1)+'</span><span class="inspo-text">'+t+'</span><button class="copy-btn" data-text="'+t.replace(/"/g,'&quot;')+'">Copiar</button>';
+    tl.appendChild(d);
+  });
+  var hl=document.getElementById('hooksList');hl.innerHTML='';
+  HOOKS.forEach(function(h,i){
+    var d=document.createElement('div');d.className='inspo-item';
+    d.innerHTML='<span class="hook-tag tag-'+h.tag+'">'+h.tag+'</span><span class="inspo-text">'+h.text+'</span><button class="copy-btn" data-text="'+h.text.replace(/"/g,'&quot;')+'">Copiar</button>';
+    hl.appendChild(d);
+  });
+  // event delegation para copiar
+  [fl,al,tl,hl].forEach(function(list){
+    list.addEventListener('click',function(e){
+      var btn=e.target.closest('.copy-btn');if(!btn)return;
+      var txt=btn.getAttribute('data-text');
+      navigator.clipboard.writeText(txt).then(function(){
+        var orig=btn.textContent;btn.textContent='✓';btn.style.color='#1D9E75';
+        setTimeout(function(){btn.textContent='Copiar';btn.style.color='';},2000);
+      }).catch(function(){btn.textContent='✓';setTimeout(function(){btn.textContent='Copiar';},2000);});
+    });
+  });
+}
+
+// ── AGENDA ───────────────────────────────────────────────
+// Real date system
+// Real date system - getWeekDates defined below with weekOffset support
+function getTodayIdx(){
+  var dow=new Date().getDay();
+  return dow===0?6:dow-1;
+}
+var weekOffset=0;
+function getWeekDates(offset){
+  offset=offset||0;
+  var today=new Date();
+  var dow=today.getDay();
+  var mon=new Date(today);
+  var diff=dow===0?-6:1-dow;
+  mon.setDate(today.getDate()+diff+(offset*7));
+  var dates=[];
+  var dayNames=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+  var months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  for(var i=0;i<7;i++){
+    var d=new Date(mon);d.setDate(mon.getDate()+i);
+    dates.push({label:dayNames[i]+' '+d.getDate()+' '+months[d.getMonth()],short:dayNames[i],date:new Date(d),idx:i});
+  }
+  return dates;
+}
+var WEEK_DATES=getWeekDates(0);
+function resetCalToToday(){var t=new Date();calSelDate=new Date(t.getFullYear(),t.getMonth(),t.getDate());calYear=t.getFullYear();calMonth=t.getMonth();}
+function prevWeek(){
+  weekOffset--;
+  WEEK_DATES=getWeekDates(weekOffset);
+  DAYS=WEEK_DATES.map(function(d){return d.label;});
+  day=weekOffset===0?getTodayIdx():0;
+  if(weekOffset===0)resetCalToToday();
+  loadWeekLabel();buildNav();buildRows();
+  syncWeek();
+}
+function nextWeek(){
+  weekOffset++;
+  WEEK_DATES=getWeekDates(weekOffset);
+  DAYS=WEEK_DATES.map(function(d){return d.label;});
+  day=weekOffset===0?getTodayIdx():0;
+  if(weekOffset===0)resetCalToToday();
+  loadWeekLabel();buildNav();buildRows();
+  syncWeek();
+}
+
+async function syncWeek(){
+  try{
+    var fechas=WEEK_DATES.map(function(d){return dk(WEEK_DATES.indexOf(d));});
+    var q='select=*&or=('+fechas.map(function(f){return 'fecha.eq.'+f;}).join(',')+')&order=fecha,hora';
+    var ag=await sbGet('agenda',q);
+    ag.forEach(function(r){
+      if(!r.fecha)return;
+      if(!data[r.fecha])data[r.fecha]={};
+      var cat=(!r.categoria||r.categoria==='null')?null:r.categoria;
+      data[r.fecha][r.hora.toString()]={id:r.id,text:r.texto||'',cat:cat,done:r.hecho||false};
+    });
+    buildNav();buildRows();
+  }catch(e){}
+}
+var DAYS=WEEK_DATES.map(function(d){return d.label;});
+
+function dk(d){
+  var dt=WEEK_DATES[d]?WEEK_DATES[d].date:new Date();
+  return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+}
+function getDK(){return dk(day);}
+
+
+
+var HOURS=[];for(var h=4;h<=27;h++)HOURS.push(h);
+var DIVIDERS={4:'Madrugada',7:'Mañana',12:'Mediodía',15:'Tarde',20:'Noche',24:'Medianoche'};
+var CAT={contenido:{color:'#534AB7',bg:'#f0eeff',border:'#9b8fea',text:'#3C3489'},personal:{color:'#1D9E75',bg:'#eafaf3',border:'#5DCAA5',text:'#085041'},negocio:{color:'#D85A30',bg:'#fff0eb',border:'#F0997B',text:'#4A1B0C'},descanso:{color:'#888780',bg:'#f5f5f4',border:'#B4B2A9',text:'#444441'}};
+var PILARES={conexion:'Conexión',autoridad:'Autoridad',educacion:'Educación',venta:'Venta',mindset:'Mindset',storytelling:'Storytelling',lifestyle:'Lifestyle',entretenimiento:'Entretenimiento'};
+var DAY_SHORT={Lunes:'Lun',Martes:'Mar','Miércoles':'Mié',Jueves:'Jue',Viernes:'Vie','Sábado':'Sáb',Domingo:'Dom'};
+var DAY_ORDER={Lunes:0,Martes:1,'Miércoles':2,Jueves:3,Viernes:4,'Sábado':5,Domingo:6,'':99};
+var day=0,data={},scripts=[],editIdx=-1,sfilt='todos',catTarget=null,saveTimer=null;
+var LS_D='meiby_v3_agenda';
+var LS_S='meiby_v3_scripts';
+var LS_SEMANAS='meiby_semanas';
+var semanasGuardadas=[];
+
+function loadSemanas(){
+  try{var s=localStorage.getItem(LS_SEMANAS);if(s)semanasGuardadas=JSON.parse(s);}catch(e){}
+}
+function saveSemanas(){
+  try{localStorage.setItem(LS_SEMANAS,JSON.stringify(semanasGuardadas));}catch(e){}
+}
+
+function guardarSemana(){
+  var months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var mon=WEEK_DATES[0].date;var sun=WEEK_DATES[6].date;
+  var label=mon.getDate()+' '+months[mon.getMonth()]+' — '+sun.getDate()+' '+months[sun.getMonth()]+' '+sun.getFullYear();
+  var total=0,done=0;var cc={contenido:0,personal:0,negocio:0,descanso:0};
+  var diasData=[];
+  DAYS.forEach(function(d,i){
+    var dt=0,dc=0;var bloques=[];
+    Object.values(data[dk(i)]||{}).forEach(function(v){
+      if(v.text&&v.text.trim()){
+        dt++;total++;if(v.done)dc++;
+        if(v.cat&&cc[v.cat]!==undefined)cc[v.cat]++;
+        bloques.push({text:v.text,done:v.done,cat:v.cat});
+      }
+    });
+    done+=dc;
+    diasData.push({nombre:d,total:dt,done:dc,bloques:bloques});
+  });
+  // guarda snapshot de guiones
+  var guionesSnap=JSON.parse(JSON.stringify(scripts));
+  var semana={
+    id:Date.now(),
+    label:label,
+    fecha:new Date().toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'}),
+    stats:{total:total,done:done,pct:total>0?Math.round(done/total*100):0,cat:cc},
+    dias:diasData,
+    guiones:guionesSnap
+  };
+  semanasGuardadas.unshift(semana);
+  saveSemanas();
+  // modal de confirmacion
+  document.getElementById('modalTitle').textContent='Semana guardada';
+  document.getElementById('modalSub').textContent='La semana "'+label+'" quedó guardada en tu historial.';
+  document.getElementById('modalOverlay').style.display='flex';
+  var btn=document.getElementById('modalOk');
+  btn.textContent='Perfecto';btn.style.background='#1D9E75';
+  btn.onclick=function(){closeModal();btn.textContent='Sí, borrar';btn.style.background='#E24B4A';};
+  renderSemanas();
+}
+
+function renderSemanas(){
+  var c=document.getElementById('semanasList');if(!c)return;c.innerHTML='';
+  var cnt=document.getElementById('semanasCount');
+  if(cnt)cnt.textContent=semanasGuardadas.length+' semana'+(semanasGuardadas.length!==1?'s':'')+' guardada'+(semanasGuardadas.length!==1?'s':'');
+  if(!semanasGuardadas.length){
+    c.innerHTML='<div style="text-align:center;padding:3rem;color:#ccc;font-size:13px">Aún no tienes semanas guardadas.<br>Termina una semana, ve a Resumen y dale a "Guardar esta semana".</div>';
+    return;
+  }
+  semanasGuardadas.forEach(function(s,idx){
+    var pct=s.stats.pct;
+    var guionesHTML='';
+    if(s.guiones&&s.guiones.length){
+      var DAY_ORDER2={Lunes:0,Martes:1,'Miércoles':2,Jueves:3,Viernes:4,'Sábado':5,Domingo:6,'':99};
+      var gs=s.guiones.slice().sort(function(a,b){return (DAY_ORDER2[a.dia||'']||99)-(DAY_ORDER2[b.dia||'']||99);});
+      guionesHTML='<div style="margin-top:14px"><div style="font-size:12px;font-weight:600;color:#534AB7;margin-bottom:8px">Guiones de esta semana ('+s.guiones.length+')</div>'+
+        '<div style="display:grid;gap:6px">'+
+        gs.map(function(g){
+          var pC=g.platform==='IG'?'b-ig':g.platform==='TikTok'?'b-tiktok':'b-ambos';
+          var sC='b-'+g.status;
+          var pub=g.dia?'<span style="font-size:10px;background:#EEEDFE;color:#3C3489;padding:1px 6px;border-radius:8px;font-weight:500">'+g.dia+(g.hora?' · '+g.hora:'')+'</span> ':'';
+          return '<div style="background:#fafafa;border:1px solid #f0f0f0;border-radius:8px;padding:8px 12px;display:flex;align-items:start;gap:8px;flex-wrap:wrap">'+
+            pub+
+            '<span style="font-size:13px;font-weight:500;color:#333;flex:1">'+g.title+'</span>'+
+            '<span class="badge '+pC+'">'+g.platform+'</span>'+
+            '<span class="badge '+sC+'">'+g.status+'</span>'+
+            (g.hook?'<div style="font-size:11px;color:#aaa;width:100%;margin-top:2px">Hook: '+g.hook+'</div>':'')+
+          '</div>';
+        }).join('')+
+        '</div></div>';
+    } else {
+      guionesHTML='<div style="margin-top:10px;font-size:12px;color:#ccc">Sin guiones guardados esta semana.</div>';
+    }
+    var card=document.createElement('div');card.className='semana-card';
+    card.innerHTML=
+      '<div class="semana-header" onclick="toggleSemana('+idx+',this)">'+
+        '<div>'+
+          '<div class="semana-titulo">'+s.label+'</div>'+
+          '<div class="semana-fecha">Guardada el '+s.fecha+' &nbsp;·&nbsp; '+s.stats.total+' bloques &nbsp;·&nbsp; '+pct+'% completado &nbsp;·&nbsp; '+(s.guiones?s.guiones.length:0)+' guiones</div>'+
+        '</div>'+
+        '<div style="display:flex;align-items:center;gap:8px">'+
+          '<button class="semana-del-btn" onclick="event.stopPropagation();deleteSemana('+idx+')">Eliminar</button>'+
+          '<span class="semana-chevron">▼</span>'+
+        '</div>'+
+      '</div>'+
+      '<div class="semana-body" id="sbody-'+idx+'">'+
+        '<div class="semana-stats">'+
+          '<div class="semana-stat"><div class="semana-stat-n">'+s.stats.total+'</div><div class="semana-stat-l">Planificados</div></div>'+
+          '<div class="semana-stat"><div class="semana-stat-n">'+s.stats.done+'</div><div class="semana-stat-l">Completados</div></div>'+
+          '<div class="semana-stat"><div class="semana-stat-n">'+pct+'%</div><div class="semana-stat-l">Progreso</div></div>'+
+          '<div class="semana-stat"><div class="semana-stat-n">'+(s.guiones?s.guiones.length:0)+'</div><div class="semana-stat-l">Guiones</div></div>'+
+        '</div>'+
+        '<div style="font-size:12px;font-weight:600;color:#333;margin-bottom:8px">Agenda de la semana</div>'+
+        '<div class="semana-dias">'+
+          s.dias.map(function(d){
+            if(!d.bloques||!d.bloques.length)return '<div class="semana-dia-row"><div class="semana-dia-nombre">'+d.nombre+'</div><div style="font-size:11px;color:#ccc">Sin actividad</div></div>';
+            var bl=d.bloques.map(function(b){return '<span style="color:'+(b.done?'#1D9E75':'#888')+';">'+(b.done?'✓ ':'• ')+b.text+'</span>';}).join('<span style="color:#ddd"> | </span>');
+            return '<div class="semana-dia-row"><div class="semana-dia-nombre">'+d.nombre+'</div><div style="font-size:11px;flex:1;line-height:1.6">'+bl+'</div></div>';
+          }).join('')+
+        '</div>'+
+        guionesHTML+
+      '</div>';
+    c.appendChild(card);
+  });
+}
+
+function toggleSemana(idx,header){
+  var body=document.getElementById('sbody-'+idx);
+  var chev=header.querySelector('.semana-chevron');
+  var isOpen=body.classList.contains('open');
+  document.querySelectorAll('.semana-body').forEach(function(b){b.classList.remove('open');});
+  document.querySelectorAll('.semana-chevron').forEach(function(cv){cv.classList.remove('open');});
+  if(!isOpen){body.classList.add('open');chev.classList.add('open');}
+}
+
+function deleteSemana(idx){
+  document.getElementById('modalTitle').textContent='Eliminar semana';
+  document.getElementById('modalSub').textContent='¿Eliminar "'+semanasGuardadas[idx].label+'"? No se puede deshacer.';
+  document.getElementById('modalOverlay').style.display='flex';
+  var btn=document.getElementById('modalOk');
+  btn.textContent='Sí, eliminar';btn.style.background='#E24B4A';
+  btn.onclick=function(){closeModal();btn.textContent='Sí, borrar';semanasGuardadas.splice(idx,1);saveSemanas();renderSemanas();};
+}
+
+
+var SUPA_URL='https://wshivhfhcjrdabciygrc.supabase.co';
+var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndzaGl2aGZoY2pyZGFiY2l5Z3JjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0NjY4OTEsImV4cCI6MjA4OTA0Mjg5MX0.mEQzFkQZ275A1ZAEY1GcG8UCfF0Er2s2wZUXgi3Ko2c';
+var SH={'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+async function sbGet(t,q){var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?'+q,{headers:SH});if(!r.ok)throw new Error();return r.json();}
+async function sbPost(t,b){var r=await fetch(SUPA_URL+'/rest/v1/'+t,{method:'POST',headers:SH,body:JSON.stringify(b)});if(!r.ok)throw new Error();return r.json();}
+async function sbPatch(t,id,b){var r=await fetch(SUPA_URL+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:Object.assign({},SH,{'Prefer':'return=representation'}),body:JSON.stringify(b)});if(!r.ok)throw new Error();return r.json();}
+async function syncFromCloud(){
+  try{
+    var ind=document.getElementById('saveIndicator');
+    if(ind){ind.textContent='Sincronizando...';ind.className='save-indicator saving';}
+    var ag=await sbGet('agenda','select=*&order=fecha,hora');
+    ag.forEach(function(r){
+      if(!r.fecha)return;
+      if(!data[r.fecha])data[r.fecha]={};
+      var cat=(!r.categoria||r.categoria==='null')?null:r.categoria;
+      var hk=r.hora.toString();
+      data[r.fecha][hk]={id:r.id,text:r.texto||'',cat:cat,done:r.hecho||false};
+    });
+    var sc=await sbGet('guiones','select=*&order=created_at');
+    scripts=sc.map(function(r){return{id:r.id,title:r.titulo,dia:r.dia_pub||'',hora:r.hora_pub||'',platform:r.plataforma||'IG',pilar:r.pilar||'conexion',status:r.estado||'borrador',hook:r.hook||'',notes:r.notas||''};});
+    localStorage.setItem(LS_D,JSON.stringify(data));
+    localStorage.setItem(LS_S,JSON.stringify(scripts));
+    if(ind){ind.textContent='✓ Sincronizado';ind.className='save-indicator';}
+    buildNav();buildRows();renderS();
+  }catch(e){
+    var ind=document.getElementById('saveIndicator');
+    if(ind){ind.textContent='Sin red — local';ind.className='save-indicator';}
+  }
+}
+
+function persist(){
+  clearTimeout(saveTimer);
+  var ind=document.getElementById('saveIndicator');
+  if(ind){ind.textContent='Guardando...';ind.className='save-indicator saving';}
+  saveTimer=setTimeout(async function(){
+    try{
+      localStorage.setItem(LS_D,JSON.stringify(data));
+      localStorage.setItem(LS_S,JSON.stringify(scripts));
+      for(var d=0;d<7;d++){
+        var dayData=data[dk(d)]||{};
+        var allKeys=Object.keys(dayData);
+        for(var ki=0;ki<allKeys.length;ki++){
+          var hk=allKeys[ki];
+          var bl=dayData[hk];
+          if(!bl||(!bl.text&&!bl.cat&&!bl.done&&!bl.id))continue;
+          var horaVal=isNaN(hk)?hk:parseInt(hk);
+          if(bl.id){
+            await sbPatch('agenda',bl.id,{texto:bl.text||'',categoria:bl.cat||null,hecho:bl.done||false});
+            if(!bl.text&&!bl.cat&&!bl.done){await fetch(SUPA_URL+'/rest/v1/agenda?id=eq.'+bl.id,{method:'DELETE',headers:SH});data[dk(d)][hk].id=null;}
+          } else if(bl.text||bl.cat||bl.done){
+            var res=await sbPost('agenda',{fecha:dk(d),hora:horaVal,texto:bl.text||'',categoria:bl.cat||null,hecho:bl.done||false});
+            if(res&&res[0])data[d][hk].id=res[0].id;
+          }
+        }
+      }
+      if(ind){ind.textContent='✓ Guardado';ind.className='save-indicator';}
+    }catch(e){
+      localStorage.setItem(LS_D,JSON.stringify(data));
+      localStorage.setItem(LS_S,JSON.stringify(scripts));
+      if(ind){ind.textContent='✓ Local';ind.className='save-indicator';}
+    }
+  },800);
+}
+function loadStorage(){
+  try{var d=localStorage.getItem(LS_D);var s=localStorage.getItem(LS_S);if(d)data=JSON.parse(d);if(s)scripts=JSON.parse(s);}catch(e){}
+  if(!data[getDK()])data[getDK()]={};
+}
+
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.del-btn,.edit-btn');if(!btn)return;
+  var idx=parseInt(btn.getAttribute('data-idx'));if(isNaN(idx))return;
+  if(btn.classList.contains('del-btn')){scripts.splice(idx,1);persist();renderS();}
+  else if(btn.classList.contains('edit-btn')){editS(idx);}
+});
+var catMenuActive=false;
+document.addEventListener('click',function(e){
+  if(catMenuActive){catMenuActive=false;return;}
+  if(!e.target.closest('#cmenu')&&!e.target.classList.contains('catdot'))
+    document.getElementById('cmenu').classList.remove('on');
+});
+document.addEventListener('touchend',function(e){
+  if(catMenuActive){catMenuActive=false;return;}
+  if(!e.target.closest('#cmenu')&&!e.target.classList.contains('catdot'))
+    document.getElementById('cmenu').classList.remove('on');
+});
+
+function goTab(id,btn){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  document.getElementById(id).classList.add('on');btn.classList.add('on');
+  if(id==='resumen')buildSum();
+  if(id==='semanas')renderSemanas();
+  if(id==='notas'){renderNotas();updateMetaCard();}
+  if(id==='calendario')buildCalendario();
+}
+function fH(h){
+  if(h===0||h===24)return '12am';
+  if(h===1||h===25)return '1am';
+  if(h===2||h===26)return '2am';
+  if(h===3||h===27)return '3am';
+  if(h===12)return '12pm';
+  var s=h<12?'am':'pm';var d=h>12?h-12:h;return d+s;
+}
+function fR(h){return fH(h)+' – '+fH(h>=27?28:h+1);}
+function buildNav(){
+  var c=document.getElementById('daynav');c.innerHTML='';
+  WEEK_DATES.forEach(function(d,i){
+    var dkey=dk(i);
+    var has=data[dkey]&&Object.values(data[dkey]).some(function(v){return v.text&&v.text.trim();});
+    var btn=document.createElement('button');
+    btn.className='daybtn'+(i===day?' on':'')+(has&&i!==day?' dot':'');
+    btn.innerHTML='<span class="daybtn-short">'+d.short+'</span><span class="daybtn-date">'+d.date.getDate()+'</span>';
+    (function(idx){btn.onclick=function(){day=idx;buildNav();buildRows();};})(i);
+    c.appendChild(btn);
+  });
+}
+function styleBlock(block,cbar,ta,cat,done,hasTxt){
+  if(done&&hasTxt){block.style.borderColor='#34c78a';block.style.background='#eafaf3';cbar.style.background='#34c78a';ta.style.color='#aaa';ta.style.textDecoration='line-through';}
+  else if(hasTxt&&cat&&CAT[cat]){block.style.borderColor=CAT[cat].border;block.style.background=CAT[cat].bg;cbar.style.background=CAT[cat].color;ta.style.color=CAT[cat].text;ta.style.textDecoration='';}
+  else if(hasTxt){block.style.borderColor='#9b8fea';block.style.background='#f3f1fd';cbar.style.background='#9b8fea';ta.style.color='#333';ta.style.textDecoration='';}
+  else{block.style.borderColor='#e8e8e8';block.style.background='#fff';cbar.style.background='#e8e8e8';ta.style.color='#333';ta.style.textDecoration='';}
+}
+function fHM(h,m){
+  var hd,ap;
+  if(h===0||h===24){hd=12;ap='am';}
+  else if(h===1||h===25){hd=1;ap='am';}
+  else if(h===2||h===26){hd=2;ap='am';}
+  else if(h===3||h===27){hd=3;ap='am';}
+  else{hd=h>12?h-12:h;ap=h>=12&&h<24?'pm':'am';}
+  if(m===0)return hd+ap;
+  return hd+':'+(m<10?'0':'')+m+ap;
+}
+
+function makeBlock(h,subKey,c){
+  // subKey is like "8" for main or "8_30" for 8:30
+  var parts=subKey.toString().split('_');
+  var hh=parseInt(parts[0]);
+  var mm=parts[1]?parseInt(parts[1]):0;
+  if(!data[getDK()][subKey])data[getDK()][subKey]={text:'',cat:null,done:false};
+  var saved=data[getDK()][subKey];
+  var hasTxt=!!(saved.text&&saved.text.trim());
+  var isSub=mm>0;
+
+  var brow=document.createElement('div');
+  brow.className='brow';
+  brow.setAttribute('data-key',subKey);
+  if(isSub)brow.style.paddingLeft='10px';
+
+  var tlabel=document.createElement('div');
+  tlabel.className='tlabel';
+  tlabel.style.cursor=isSub?'default':'pointer';
+  tlabel.style.opacity=isSub?'0.7':'1';
+  tlabel.innerHTML='<span style="font-size:'+(isSub?'10px':'11px')+';color:'+(isSub?'#9b8fea':'#aaa')+';font-weight:'+(isSub?'600':'500')+'">'+(isSub?'↳ ':'')+fHM(hh,mm)+'</span>'+(isSub?'':'<small style="display:block;margin-top:2px;background:#f0eeff;color:#9b8fea;font-size:9px;border-radius:3px;padding:1px 4px;text-align:center;font-weight:600;">+</small>');
+
+  var block=document.createElement('div');block.className='block';
+  if(isSub){block.style.borderStyle='dashed';block.style.borderColor='#d4d0f5';}
+  var cbar=document.createElement('div');cbar.className='cbar';
+  if(isSub)cbar.style.background='#d4d0f5';
+  var ta=document.createElement('textarea');ta.className='tinput';
+  ta.placeholder='A las '+fHM(hh,mm)+' voy a...';
+  ta.value=saved.text||'';ta.rows=1;
+  if(saved.text){setTimeout((function(t){return function(){t.style.height='auto';t.style.height=t.scrollHeight+'px';};})(ta),0);}
+
+  var bside=document.createElement('div');bside.className='bside';
+  var ckbtn=document.createElement('button');
+  ckbtn.style.cssText='width:22px;height:22px;border-radius:50%;border:2px solid #ddd;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;line-height:1;padding:0;font-family:sans-serif;transition:all .18s';
+  ckbtn.textContent='';
+  if(saved.done&&hasTxt){ckbtn.style.borderColor='#34c78a';ckbtn.style.background='#34c78a';ckbtn.style.color='#fff';ckbtn.textContent='✓';}
+  var catdot=document.createElement('div');catdot.className='catdot';
+  var cleanCat=(!saved.cat||saved.cat==='null')?null:saved.cat;
+  if(cleanCat&&CAT[cleanCat])catdot.style.background=CAT[cleanCat].color;
+  bside.appendChild(ckbtn);bside.appendChild(catdot);
+  // clear X button — only shown when block has text
+  var clearBtn=document.createElement('button');
+  clearBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:16px;color:#ddd;padding:0 2px;line-height:1;display:'+(hasTxt?'block':'none')+';transition:color .15s;';
+  clearBtn.textContent='✕';
+  clearBtn.title='Borrar texto';
+  (function(t,cb,k){
+    t.addEventListener('input',function(){
+      cb.style.display=t.value.trim()?'block':'none';
+    });
+    cb.addEventListener('click',function(){
+      t.value='';
+      cb.style.display='none';
+      t.style.height='auto';
+      if(!data[getDK()])data[getDK()]={};
+      if(!data[getDK()][k])data[getDK()][k]={};
+      data[getDK()][k].text='';
+      data[getDK()][k].done=false;
+      // reset check button — find it in the same bside
+      var bs=cb.parentNode;
+      var ck=bs?bs.querySelector('button:first-child'):null;
+      if(ck){ck.style.borderColor='#ddd';ck.style.background='#fff';ck.style.color='';ck.textContent='';}
+      persist();snapshot();
+      styleBlock(block,cbar,t,null,false,false);
+    });
+  })(ta,clearBtn,hh+(isSub?'.'+mm:''));
+  bside.appendChild(clearBtn);
+
+  styleBlock(block,cbar,ta,cleanCat,saved.done,hasTxt);
+
+  // delete button for sub-rows
+  if(isSub){
+    var delBtn=document.createElement('button');
+    delBtn.style.cssText='background:none;border:none;cursor:pointer;font-size:20px;color:#bbb;padding:0 6px;font-family:inherit;line-height:1;';
+    delBtn.textContent='✕';
+    delBtn.title='Eliminar';
+    (function(sk){delBtn.addEventListener('click',function(){
+      delete data[getDK()][sk];
+      persist();
+      buildRows();
+    });})(subKey);
+    bside.appendChild(delBtn);
+  }
+
+  // interval picker on main hour label
+  if(!isSub){
+    (function(hh,tlabel){
+      tlabel.addEventListener('click',function(e){
+        e.stopPropagation();
+        // toggle — if this label's menu is already open, close it
+        var existing=document.querySelector('.imenu[data-hour="'+hh+'"]');
+        document.querySelectorAll('.imenu').forEach(function(m){m.remove();});
+        if(existing)return; // was open — just close
+        var menu=document.createElement('div');
+        menu.className='imenu';
+        menu.setAttribute('data-hour',hh);
+        menu.style.cssText='position:fixed;background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:4px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:90px;';
+        [15,30,45].forEach(function(min){
+          // only show if not already added
+          var sk=hh+'_'+min;
+          var exists=!!data[getDK()][sk];
+          var opt=document.createElement('button');
+          opt.style.cssText='padding:7px 14px;border:none;background:'+(exists?'#f0eeff':'transparent')+';cursor:pointer;font-size:12px;font-family:inherit;text-align:left;border-radius:6px;color:'+(exists?'#534AB7':'#333')+';width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;';
+          opt.innerHTML=fHM(hh,min)+'<span style="font-size:10px;color:#ccc">'+(exists?'✓ agregado':'+ agregar')+'</span>';
+          opt.addEventListener('mousedown',function(ev){
+            ev.stopPropagation();
+            if(!exists){
+              data[getDK()][sk]={text:'',cat:null,done:false};
+              persist();
+            }
+            menu.remove();
+            buildRows();
+            // scroll to new row
+            setTimeout(function(){
+              var newRow=document.querySelector('[data-key="'+sk+'"]');
+              if(newRow){newRow.scrollIntoView({behavior:'smooth',block:'center'});newRow.querySelector('.tinput').focus();}
+            },100);
+          });
+          menu.appendChild(opt);
+        });
+        var rect=tlabel.getBoundingClientRect();
+        menu.style.top=(rect.bottom+4)+'px';
+        menu.style.left=rect.left+'px';
+        document.body.appendChild(menu);
+      });
+    })(hh,tlabel);
+  }
+
+  (function(sk,block,cbar,ta,ckbtn,catdot){
+    ta.addEventListener('input',function(){
+      data[getDK()][sk].text=ta.value;
+      var ht=!!(ta.value.trim());
+      var cc=(!data[getDK()][sk].cat||data[getDK()][sk].cat==='null')?null:data[getDK()][sk].cat;
+      styleBlock(block,cbar,ta,cc,data[getDK()][sk].done,ht);
+      ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
+      buildNav();persist();snapshot();
+    });
+    ckbtn.addEventListener('click',function(){
+      var ht=!!(data[getDK()][sk].text&&data[getDK()][sk].text.trim());if(!ht)return;
+      data[getDK()][sk].done=!data[getDK()][sk].done;
+      var d=data[getDK()][sk].done;
+      if(d){ckbtn.style.borderColor='#34c78a';ckbtn.style.background='#34c78a';ckbtn.style.color='#fff';ckbtn.textContent='✓';}
+      else{ckbtn.style.borderColor='#ddd';ckbtn.style.background='#fff';ckbtn.style.color='transparent';ckbtn.textContent='';}
+      var cc=(!data[getDK()][sk].cat||data[getDK()][sk].cat==='null')?null:data[getDK()][sk].cat;
+      styleBlock(block,cbar,ta,cc,d,true);persist();snapshot();
+    });
+    ckbtn.addEventListener('mouseenter',function(){if(!data[getDK()][sk].done){ckbtn.style.borderColor='#34c78a';ckbtn.style.background='#eafaf3';}});
+    ckbtn.addEventListener('mouseleave',function(){if(!data[getDK()][sk].done){ckbtn.style.borderColor='#ddd';ckbtn.style.background='#fff';}});
+    catdot.addEventListener('click',function(e){
+      e.stopPropagation();
+      catTarget={h:sk,block:block,cbar:cbar,ta:ta,catdot:catdot};
+      var menu2=document.getElementById('cmenu');
+      var rect=e.target.getBoundingClientRect();
+      menu2.style.top=(rect.bottom+4)+'px';
+      menu2.style.left=Math.min(rect.left,window.innerWidth-145)+'px';
+      menu2.classList.add('on');
+    });
+  })(subKey,block,cbar,ta,ckbtn,catdot);
+
+  block.appendChild(cbar);block.appendChild(ta);block.appendChild(bside);
+  brow.appendChild(tlabel);brow.appendChild(block);
+  c.appendChild(brow);
+}
+
+function buildRows(){
+  if(!data[getDK()])data[getDK()]={};
+  var c=document.getElementById('rows');c.innerHTML='';
+  // show cal day note if exists for this day
+  if(WEEK_DATES[day]){
+    var wd=WEEK_DATES[day].date;
+    
+    var nk=wd.getFullYear()+'-'+(wd.getMonth()+1)+'-'+wd.getDate();
+    if(calDayNotes[nk]){
+      var noteEl=document.createElement('div');noteEl.className='cal-day-note';
+      var nIcon=document.createElement('div');nIcon.className='cal-day-note-icon';nIcon.textContent='📌';
+      var nBody=document.createElement('div');nBody.style.flex='1';
+      var nLabel=document.createElement('div');nLabel.className='cal-day-note-label';nLabel.textContent='Nota del día';
+      var nText=document.createElement('div');nText.className='cal-day-note-text';nText.textContent=calDayNotes[nk];
+      var nDel=document.createElement('button');nDel.className='cal-day-note-del';nDel.textContent='✕';
+      (function(k){nDel.onclick=function(){saveCalDayNote(k,'');buildRows();};})(nk);
+      nBody.appendChild(nLabel);nBody.appendChild(nText);
+      noteEl.appendChild(nIcon);noteEl.appendChild(nBody);noteEl.appendChild(nDel);
+      c.appendChild(noteEl);
+    }
+  }
+  HOURS.forEach(function(h){
+    if(!data[getDK()][h])data[getDK()][h]={text:'',cat:null,done:false};
+    if(DIVIDERS[h]){var div=document.createElement('div');div.className='hour-divider';div.innerHTML='<span>'+DIVIDERS[h]+'</span>';c.appendChild(div);}
+    // main hour block
+    makeBlock(h,h,c);
+    // sub-interval blocks if they exist
+    [15,30,45].forEach(function(min){
+      var sk=h+'_'+min;
+      if(data[getDK()][sk])makeBlock(h,sk,c);
+    });
+  });
+}
+function setCat(cat){
+  if(!catTarget)return;var h=catTarget.h;if(!data[getDK()])data[getDK()]={};if(!data[getDK()][h])data[getDK()][h]={};data[getDK()][h].cat=cat;
+  catTarget.catdot.style.background=cat&&CAT[cat]?CAT[cat].color:'#ddd';
+  var ht=!!(data[getDK()][h].text&&data[getDK()][h].text.trim());
+  var cc=(!cat||cat==='null')?null:cat;
+  styleBlock(catTarget.block,catTarget.cbar,catTarget.ta,cc,data[getDK()][h].done,ht);
+  document.getElementById('cmenu').classList.remove('on');persist();
+}
+function filt(f,btn){sfilt=f;document.querySelectorAll('#filtros .fbtn').forEach(function(b){b.classList.remove('on');});btn.classList.add('on');renderS();}
+function renderS(){
+  var tbody=document.getElementById('stbody');tbody.innerHTML='';
+  document.getElementById('scnt').textContent=scripts.length+' guion'+(scripts.length!==1?'es':'');
+  var filtered=scripts.filter(function(s){return sfilt==='todos'||s.status===sfilt;});
+  filtered.sort(function(a,b){return (DAY_ORDER[a.dia||'']||99)-(DAY_ORDER[b.dia||'']||99);});
+  if(!filtered.length){var emp=document.createElement('div');emp.style.cssText='text-align:center;padding:2rem;color:#ccc;font-size:13px;';emp.textContent='Sin guiones. Agrega el primero abajo.';tbody.appendChild(emp);return;}
+  filtered.forEach(function(s){
+    var ri=scripts.indexOf(s);
+    var pC='b-'+(s.platform==='IG'?'ig':s.platform==='TikTok'?'tiktok':'ambos');
+    var sC='b-'+s.status;var pilC='b-'+(s.pilar||'conexion');
+    var pl=PILARES[s.pilar]||s.pilar||'—';
+    var card=document.createElement('div');
+    card.style.cssText='background:#fff;border:1.5px solid #f0f0f0;border-radius:12px;padding:12px 14px;';
+    // top row: date + badges + actions
+    var top=document.createElement('div');top.style.cssText='display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;';
+    var pub=document.createElement('span');
+    pub.className='pub-badge';pub.textContent=s.dia?(s.dia+(s.hora?' · '+s.hora:'')):'Sin fecha';
+    if(!s.dia)pub.style.cssText='font-size:11px;color:#ccc;background:none;border:none;padding:0;';
+    var bPlat=document.createElement('span');bPlat.className='badge '+pC;bPlat.textContent=s.platform||'IG';
+    var bPil=document.createElement('span');bPil.className='badge '+pilC;bPil.textContent=pl;
+    var bStat=document.createElement('span');bStat.className='badge '+sC;bStat.textContent=s.status||'borrador';
+    var acts=document.createElement('div');acts.style.cssText='margin-left:auto;display:flex;gap:4px;';
+    var editB=document.createElement('button');editB.className='ibtn edit-btn';editB.setAttribute('data-idx',ri);editB.textContent='✎';
+    var delB=document.createElement('button');delB.className='ibtn del-btn';delB.setAttribute('data-idx',ri);delB.textContent='✕';
+    acts.appendChild(editB);acts.appendChild(delB);
+    top.appendChild(pub);top.appendChild(bPlat);top.appendChild(bPil);top.appendChild(bStat);top.appendChild(acts);
+    // title
+    var title=document.createElement('div');title.style.cssText='font-size:14px;font-weight:600;color:#222;margin-bottom:6px;';title.textContent=s.title||'Sin título';
+    // hook
+    var hook=document.createElement('div');hook.style.cssText='font-size:12px;color:#888;line-height:1.4;';
+    if(s.hook)hook.textContent='🎣 '+s.hook;
+    // notes
+    var notes=document.createElement('div');notes.style.cssText='font-size:12px;color:#aaa;margin-top:4px;line-height:1.4;';
+    if(s.notes)notes.textContent=s.notes.length>80?s.notes.slice(0,80)+'…':s.notes;
+    card.appendChild(top);card.appendChild(title);
+    if(s.hook)card.appendChild(hook);
+    if(s.notes)card.appendChild(notes);
+    tbody.appendChild(card);
+  });
+}
+function populateDias(){
+  var sel=document.getElementById('fdia');
+  if(!sel)return;
+  var cur=sel.value;
+  sel.innerHTML='<option value="">— Sin definir —</option>';
+  var months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var now=new Date();
+  var todayNum=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+  var weekLabels=['— Esta semana —','— Próxima semana —','— En 2 semanas —','— En 3 semanas —'];
+  for(var w=0;w<4;w++){
+    var weekDates=getWeekDates(w);
+    var futureDates=weekDates.filter(function(d){
+      var dNum=d.date.getFullYear()*10000+(d.date.getMonth()+1)*100+d.date.getDate();
+      return dNum>=todayNum;
+    });
+    if(!futureDates.length)continue;
+    // separator option
+    var sep=document.createElement('option');
+    sep.disabled=true;sep.textContent=weekLabels[w];
+    sel.appendChild(sep);
+    futureDates.forEach(function(d){
+      var opt=document.createElement('option');
+      var label=d.short+' '+d.date.getDate()+' '+months[d.date.getMonth()];
+      opt.value=label;opt.textContent=label;
+      sel.appendChild(opt);
+    });
+  }
+  if(cur)sel.value=cur;
+}
+function openSF(){
+  var form=document.getElementById('sform');
+  if(form.classList.contains('on')&&editIdx===-1){closeSF();return;}
+  editIdx=-1;dpReset();dpRender();
+  document.getElementById('ftitle').textContent='Nuevo guion';
+  ['ft','fh','fn'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('fp').value='IG';document.getElementById('fpilar').value='conexion';
+  document.getElementById('fs').value='borrador';document.getElementById('fdia').value='';
+  document.getElementById('fhora').value='';form.classList.add('on');
+  setTimeout(function(){document.getElementById('ft').focus();},100);
+}
+function closeSF(){document.getElementById('sform').classList.remove('on');}
+function editS(i){editIdx=i;var s=scripts[i];document.getElementById('ftitle').textContent='Editar guion';document.getElementById('ft').value=s.title||'';document.getElementById('fh').value=s.hook||'';document.getElementById('fn').value=s.notes||'';document.getElementById('fp').value=s.platform||'IG';document.getElementById('fpilar').value=s.pilar||'conexion';document.getElementById('fs').value=s.status||'borrador';document.getElementById('fdia').value=s.dia||'';document.getElementById('fhora').value=s.hora||'';
+    // restore dpSelDate if dia exists
+    if(s.dia){var pts=s.dia.match(/(\d+)/);if(pts){}}
+    dpOffset=0;dpRender();
+    document.getElementById('sform').classList.add('on');document.getElementById('sform').scrollIntoView({behavior:'smooth',block:'nearest'});}
+function saveS(){var title=document.getElementById('ft').value.trim();if(!title){alert('Agrega un título');return;}var d={title:title,dia:document.getElementById('fdia').value,hora:document.getElementById('fhora').value,platform:document.getElementById('fp').value,pilar:document.getElementById('fpilar').value,status:document.getElementById('fs').value,hook:document.getElementById('fh').value.trim(),notes:document.getElementById('fn').value.trim()};if(editIdx>=0)scripts[editIdx]=d;else scripts.push(d);persist();closeSF();renderS();}
+function buildSum(){
+  // sync week label
+  var rl=document.getElementById('resumenWeekLabel');
+  if(rl)rl.textContent=document.getElementById('weekLabel')?document.getElementById('weekLabel').textContent:'';
+  var cards=document.getElementById('scards');cards.innerHTML='';
+  var total=0,done=0,active=0;var cc={contenido:0,personal:0,negocio:0,descanso:0};var dd=[];
+  DAYS.forEach(function(_,i){var dt=0,dc=0;Object.values(data[dk(i)]||{}).forEach(function(v){if(v.text&&v.text.trim()){dt++;total++;if(v.done)dc++;if(v.cat&&cc[v.cat]!==undefined)cc[v.cat]++;}});done+=dc;if(dt>0)active++;dd.push({t:dt,d:dc});});
+  var pct=total>0?Math.round(done/total*100):0;
+  [{n:total,l:'Planificados'},{n:done,l:'Completados'},{n:pct+'%',l:'Progreso'},{n:active,l:'Días activos'}].forEach(function(s){var c=document.createElement('div');c.className='sc';c.innerHTML='<div class="sn">'+s.n+'</div><div class="sl">'+s.l+'</div>';cards.appendChild(c);});
+  var ds=document.getElementById('dsummary');ds.innerHTML='';
+  DAYS.forEach(function(d,i){var t=dd[i].t,dc=dd[i].d;var p=t>0?Math.round(dc/t*100):0;var row=document.createElement('div');row.className='drow';row.innerHTML='<div class="dn">'+d+'</div><div class="pb"><div class="pf'+(p===100&&t>0?' full':'')+'" style="width:'+p+'%"></div></div><div class="dp">'+dc+'/'+t+'</div>';ds.appendChild(row);});
+  var cs=document.getElementById('catsum');cs.innerHTML='';
+  [{k:'contenido',l:'Contenido',c:CAT.contenido},{k:'personal',l:'Personal',c:CAT.personal},{k:'negocio',l:'Negocio',c:CAT.negocio},{k:'descanso',l:'Descanso',c:CAT.descanso}].forEach(function(x){var card=document.createElement('div');card.className='catcard';card.style.borderColor=x.c.border;card.style.background=x.c.bg;card.innerHTML='<div style="font-size:22px;font-weight:600;color:'+x.c.text+'">'+cc[x.k]+'</div><div style="font-size:11px;color:'+x.c.text+';margin-top:3px">'+x.l+'</div>';cs.appendChild(card);});
+  var ss=document.getElementById('ssum');ss.innerHTML='';
+  [{n:scripts.filter(function(s){return s.status==='borrador';}).length,l:'Borradores'},{n:scripts.filter(function(s){return s.status==='listo';}).length,l:'Listos'},{n:scripts.filter(function(s){return s.status==='publicado';}).length,l:'Publicados'}].forEach(function(s){var c=document.createElement('div');c.className='sc';c.innerHTML='<div class="sn">'+s.n+'</div><div class="sl">'+s.l+'</div>';ss.appendChild(c);});
+}
+
+// ── HISTORIAL UNDO/REDO ──────────────────────────────────
+var hist=[];var histIdx=-1;var MAX_HIST=50;var snapTimer=null;
+
+function snapshot(){
+  clearTimeout(snapTimer);
+  snapTimer=setTimeout(function(){
+    var snap=JSON.parse(JSON.stringify(data));
+    if(histIdx<hist.length-1) hist=hist.slice(0,histIdx+1);
+    hist.push(snap);
+    if(hist.length>MAX_HIST){hist.shift();}
+    histIdx=hist.length-1;
+    updateUndoRedo();
+  },300);
+}
+
+function undoDay(){
+  if(histIdx<=0)return;
+  histIdx--;
+  data=JSON.parse(JSON.stringify(hist[histIdx]));
+  if(!data[getDK()])data[getDK()]={};
+  buildNav();buildRows();persist();updateUndoRedo();
+}
+
+function redoDay(){
+  if(histIdx>=hist.length-1)return;
+  histIdx++;
+  data=JSON.parse(JSON.stringify(hist[histIdx]));
+  if(!data[getDK()])data[getDK()]={};
+  buildNav();buildRows();persist();updateUndoRedo();
+}
+
+function updateUndoRedo(){
+  var u=document.getElementById('btnUndo');
+  var r=document.getElementById('btnRedo');
+  if(u){u.style.opacity=histIdx>0?'1':'0.35';u.style.cursor=histIdx>0?'pointer':'not-allowed';}
+  if(r){r.style.opacity=histIdx<hist.length-1?'1':'0.35';r.style.cursor=histIdx<hist.length-1?'pointer':'not-allowed';}
+}
+
+function saveWeekLabel(){} // no longer needed
+function loadWeekLabel(){
+  var months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var mon=WEEK_DATES[0].date;
+  var sun=WEEK_DATES[6].date;
+  var label=mon.getDate()+' '+months[mon.getMonth()]+' — '+sun.getDate()+' '+months[sun.getMonth()]+' '+sun.getFullYear();
+  var el=document.getElementById('weekLabel');
+  if(el)el.textContent=label;
+}
+
+function showModal(title, sub, onOk){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalSub').textContent=sub;
+  document.getElementById('modalOverlay').style.display='flex';
+  var btn=document.getElementById('modalOk');
+  btn.onclick=function(){closeModal();onOk();};
+}
+function closeModal(){document.getElementById('modalOverlay').style.display='none';}
+
+function resetDay(){
+  showModal('Reiniciar '+DAYS[day],'Se borrarán todos los bloques de este día.',async function(){
+    var snap=JSON.parse(JSON.stringify(data));
+    if(histIdx<hist.length-1)hist=hist.slice(0,histIdx+1);
+    hist.push(snap);if(hist.length>MAX_HIST)hist.shift();
+    histIdx=hist.length-1;
+    var ids=[];
+    for(var h=4;h<=27;h++){
+      if(data[getDK()][h]&&data[getDK()][h].id)ids.push(data[getDK()][h].id);
+      data[getDK()][h]={text:'',cat:null,done:false};
+    }
+    try{localStorage.setItem(LS_D,JSON.stringify(data));}catch(e){}
+    document.getElementById('rows').innerHTML='';
+    buildNav();buildRows();updateUndoRedo();
+    if(ids.length){
+      try{
+        for(var j=0;j<ids.length;j++){
+          await fetch(SUPA_URL+'/rest/v1/agenda?id=eq.'+ids[j],{method:'DELETE',headers:SH});
+        }
+      }catch(e){}
+    }
+  });
+}
+
+function resetWeek(){
+  showModal('Reiniciar toda la semana','Se borrarán todos los bloques de los 7 días.',async function(){
+    var snap=JSON.parse(JSON.stringify(data));
+    if(histIdx<hist.length-1)hist=hist.slice(0,histIdx+1);
+    hist.push(snap);if(hist.length>MAX_HIST)hist.shift();
+    histIdx=hist.length-1;
+    // collect all Supabase IDs to delete
+    var ids=[];
+    for(var i=0;i<7;i++){
+      if(!data[i])data[i]={};
+      for(var h=4;h<=27;h++){
+        if(data[i][h]&&data[i][h].id)ids.push(data[i][h].id);
+        data[i][h]={text:'',cat:null,done:false};
+      }
+    }
+    try{localStorage.setItem(LS_D,JSON.stringify(data));}catch(e){}
+    document.getElementById('rows').innerHTML='';
+    buildNav();buildRows();updateUndoRedo();
+    // delete from Supabase
+    if(ids.length){
+      try{
+        var ind=document.getElementById('saveIndicator');
+        if(ind){ind.textContent='Sincronizando...';ind.className='save-indicator saving';}
+        for(var j=0;j<ids.length;j++){
+          await fetch(SUPA_URL+'/rest/v1/agenda?id=eq.'+ids[j],{method:'DELETE',headers:SH});
+        }
+        if(ind){ind.textContent='✓ Guardado';ind.className='save-indicator';}
+      }catch(e){}
+    }
+  });
+}
+
+var calDayNotes={};
+var LS_CAL_NOTES='meiby_cal_notes';
+async function loadCalNotes(){
+  try{var n=localStorage.getItem(LS_CAL_NOTES);if(n)calDayNotes=JSON.parse(n);}catch(e){}
+  try{
+    var res=await sbGet('cal_notas','select=fecha,texto');
+    if(res&&res.length>=0){
+      calDayNotes={};
+      res.forEach(function(r){if(r.texto)calDayNotes[r.fecha]=r.texto;});
+      localStorage.setItem(LS_CAL_NOTES,JSON.stringify(calDayNotes));
+    }
+  }catch(e){}
+}
+function saveCalNotes(){try{localStorage.setItem(LS_CAL_NOTES,JSON.stringify(calDayNotes));}catch(e){}}
+function calNoteKey(date){return date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();}
+async function saveCalDayNote(dateStr,txt){
+  if(txt)calDayNotes[dateStr]=txt;else delete calDayNotes[dateStr];
+  saveCalNotes();
+  try{
+    if(txt){
+      await fetch(SUPA_URL+'/rest/v1/cal_notas',{method:'POST',headers:Object.assign({},SH,{'Prefer':'resolution=merge-duplicates'}),body:JSON.stringify({fecha:dateStr,texto:txt})});
+    } else {
+      await fetch(SUPA_URL+'/rest/v1/cal_notas?fecha=eq.'+encodeURIComponent(dateStr),{method:'DELETE',headers:SH});
+    }
+  }catch(e){}
+  buildCalendario();
+}
+loadStorage();loadSemanas();loadNotas();loadCalNotes();
+day=getTodayIdx();
+hist=[];histIdx=-1;
+hist.push(JSON.parse(JSON.stringify(data)));
+histIdx=0;
+updateCards();buildNav();buildRows();renderS();updateUndoRedo();loadWeekLabel();
+syncFromCloud().catch(function(){});
+
+
+// ── CALENDARIO ──────────────────────────────────────────
+var calYear=new Date().getFullYear();
+var calMonth=new Date().getMonth();
+var calSelDate=null;
+// auto-select today on init
+(function(){var t=new Date();calSelDate=new Date(t.getFullYear(),t.getMonth(),t.getDate());})();
+var MONTH_NAMES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function buildCalendario(){
+  var today=new Date();
+  var lbl=document.getElementById('calMonthLabel');
+  if(lbl)lbl.textContent=MONTH_NAMES[calMonth]+' '+calYear;
+  var grid=document.getElementById('calGrid');
+  if(!grid)return;
+  grid.innerHTML='';
+  var first=new Date(calYear,calMonth,1);
+  var firstDow=first.getDay()===0?6:first.getDay()-1; // Mon=0
+  var daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  var daysInPrev=new Date(calYear,calMonth,0).getDate();
+  // prev month days
+  for(var i=firstDow-1;i>=0;i--){
+    var cell=document.createElement('div');
+    cell.className='cal-cell other';
+    cell.innerHTML='<div class="ccn">'+(daysInPrev-i)+'</div>';
+    grid.appendChild(cell);
+  }
+  // current month
+  for(var d=1;d<=daysInMonth;d++){
+    var cell=document.createElement('div');
+    var date=new Date(calYear,calMonth,d);
+    var dow=date.getDay();
+    var isToday=today.getFullYear()===calYear&&today.getMonth()===calMonth&&today.getDate()===d;
+    var isSel=calSelDate&&calSelDate.getFullYear()===calYear&&calSelDate.getMonth()===calMonth&&calSelDate.getDate()===d;
+    var isWe=dow===0||dow===6;
+    cell.className='cal-cell'+(isToday?' today':'')+(isSel?' sel':'')+(isWe?' we-cell':'');
+    // find matching week day index
+    var weekIdx=getWeekIdxForDate(date);
+    var fkCal=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+    var hasCalNote=calDayNotes&&calDayNotes[fkCal];
+    var dots='';
+    if(data[fkCal]){
+      var cats={};
+      Object.values(data[fkCal]).forEach(function(bl){
+        if(bl&&bl.text&&bl.cat&&bl.cat!=='null')cats[bl.cat]=true;
+      });
+      Object.keys(cats).forEach(function(cat){
+        if(CAT[cat])dots+='<div class="cal-dot" style="background:'+CAT[cat].color+'"></div>';
+      });
+    }
+    var noteDot=hasCalNote?'<div class="cal-dot" style="background:#9b8fea"></div>':'';
+    cell.innerHTML='<div class="ccn">'+d+'</div>'+((dots||noteDot)?'<div class="cal-dots">'+dots+noteDot+'</div>':'');
+    (function(dt,wi,cl,dm,dm2){
+      cl.onclick=function(){
+        if(cl.classList.contains('other')){
+          calMonth=dm;calYear=dm2;
+          calSelDate=dt;
+          // navigate agenda week to contain this date
+          var today=new Date();
+          var todayMon=new Date(today);
+          var tdow=today.getDay();
+          var tdiff=tdow===0?-6:1-tdow;
+          todayMon.setDate(today.getDate()+tdiff);
+          var clickedMon=new Date(dt);
+          var cdow=dt.getDay();
+          var cdiff=cdow===0?-6:1-cdow;
+          clickedMon.setDate(dt.getDate()+cdiff);
+          var diffDays=Math.round((clickedMon-todayMon)/(7*24*60*60*1000));
+          weekOffset=diffDays;
+          WEEK_DATES=getWeekDates(weekOffset);
+          DAYS=WEEK_DATES.map(function(d){return d.label;});
+          var newWi=getWeekIdxForDate(dt);
+          day=newWi>=0?newWi:0;
+          loadWeekLabel();
+          buildCalendario();
+          showCalPreview(dt,newWi);
+          return;
+        }
+        // toggle: si ya está seleccionado, deseleccionar
+        if(calSelDate&&calSelDate.getFullYear()===dt.getFullYear()&&calSelDate.getMonth()===dt.getMonth()&&calSelDate.getDate()===dt.getDate()){
+          calSelDate=null;
+          buildCalendario();
+          var prev=document.getElementById('calPreview');
+          if(prev)prev.style.display='none';
+          return;
+        }
+        calSelDate=dt;
+        buildCalendario();
+        showCalPreview(dt,wi);
+      };
+    })(date,weekIdx,cell,date.getMonth(),date.getFullYear());
+    grid.appendChild(cell);
+  }
+  // next month days
+  var total=firstDow+daysInMonth;
+  var remaining=(7-total%7)%7;
+  for(var n=1;n<=remaining;n++){
+    var cell=document.createElement('div');
+    cell.className='cal-cell other';
+    cell.innerHTML='<div class="ccn">'+n+'</div>';
+    grid.appendChild(cell);
+  }
+  // show preview if sel date
+  if(calSelDate){
+    var wi=getWeekIdxForDate(calSelDate);
+    showCalPreview(calSelDate,wi);
+  }
+}
+
+function getWeekIdxForDate(date){
+  var weekDates=WEEK_DATES;
+  for(var i=0;i<weekDates.length;i++){
+    var wd=weekDates[i].date;
+    if(wd.getFullYear()===date.getFullYear()&&wd.getMonth()===date.getMonth()&&wd.getDate()===date.getDate())return i;
+  }
+  return -1;
+}
+
+// calNote funcs defined above
+function getWeekOffsetForDate(date){
+  // calculate how many weeks away this date is from today's week
+  var today=new Date();
+  var todayMon=new Date(today);
+  var tdow=today.getDay();
+  var tdiff=tdow===0?-6:1-tdow;
+  todayMon.setDate(today.getDate()+tdiff);
+  todayMon.setHours(0,0,0,0);
+  var clickedMon=new Date(date);
+  var cdow=date.getDay();
+  var cdiff=cdow===0?-6:1-cdow;
+  clickedMon.setDate(date.getDate()+cdiff);
+  clickedMon.setHours(0,0,0,0);
+  return Math.round((clickedMon-todayMon)/(7*24*60*60*1000));
+}
+
+function showCalPreview(date,weekIdx){
+  var prev=document.getElementById('calPreview');
+  if(prev){prev.style.display='block';prev.style.margin='0 0 12px';}
+  if(!prev)return;
+  var days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var title=days[date.getDay()]+' '+date.getDate()+' de '+MONTH_NAMES[date.getMonth()]+' '+date.getFullYear();
+  var blocks='';
+  var fkPrev=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  if(data[fkPrev]){
+    var keys=Object.keys(data[fkPrev]).filter(function(k){
+      return data[fkPrev][k]&&data[fkPrev][k].text;
+    }).slice(0,4);
+    keys.forEach(function(k){
+      var bl=data[fkPrev][k];
+      var color=bl.cat&&CAT[bl.cat]?CAT[bl.cat].color:'#ddd';
+      var h=parseInt(k);
+      blocks+='<div class="cal-preview-row"><div class="cal-preview-hour">'+fH(h)+'</div><div class="cal-preview-bar" style="background:'+color+'"></div><div class="cal-preview-text">'+bl.text+'</div></div>';
+    });
+  }
+  // always show goto button — calculate offset for any date
+  var targetOffset=getWeekOffsetForDate(date);
+  var targetDayIdx=date.getDay()===0?6:date.getDay()-1;
+  var noteKey=date.getFullYear()+'-'+(date.getMonth()+1)+'-'+date.getDate();
+  var existingNote=calDayNotes[noteKey]||'';
+  prev.innerHTML='<div class="cal-preview-title">📅 '+title+'</div>'
+    +(blocks||'<div class="cal-preview-empty">Sin bloques en la agenda aún</div>')
+    +'<div class="cal-note-input-wrap" id="calNoteWrap"></div>'
+    +'<button class="cal-goto-btn" onclick="goToCalDay('+targetOffset+','+targetDayIdx+')">Ir a este día en la agenda →</button>';
+  // build note section safely without innerHTML
+  var wrap=document.getElementById('calNoteWrap');
+  if(existingNote){
+    var existing=document.createElement('div');existing.className='cal-note-existing';
+    var elabel=document.createElement('div');elabel.className='cal-note-existing-label';elabel.textContent='📌 Nota del día';
+    var etxt=document.createElement('span');etxt.textContent=existingNote;
+    var edel=document.createElement('button');edel.className='cal-note-del-btn';edel.textContent='✕';
+    (function(nk,d,wi){edel.onclick=function(){saveCalDayNote(nk,'');showCalPreview(d,wi);};})(noteKey,date,targetDayIdx);
+    existing.appendChild(elabel);existing.appendChild(etxt);existing.appendChild(edel);
+    wrap.appendChild(existing);
+  }
+  var ta=document.createElement('textarea');ta.className='cal-note-textarea';ta.id='calNoteInput';ta.placeholder='Escribe tus planes para este día...';ta.rows=2;ta.value=existingNote||'';
+  var saveBtn=document.createElement('button');saveBtn.className='cal-note-save-btn';saveBtn.textContent='💾 Guardar nota';
+  (function(nk){saveBtn.onclick=function(){var t=document.getElementById('calNoteInput');if(t)saveCalDayNote(nk,t.value.trim());};})(noteKey);
+  wrap.appendChild(ta);wrap.appendChild(saveBtn);
+  // Add guion button
+  var guionBtn=document.createElement('button');
+  guionBtn.className='cal-guion-btn';
+  guionBtn.textContent='✏️ Agregar guion para este día';
+  (function(dt,offset,dayIdx){
+    guionBtn.onclick=function(){
+      // navigate to guiones tab
+      document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+      document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+      document.getElementById('guiones').classList.add('on');
+      document.querySelectorAll('.tab').forEach(function(t){if(t.textContent.trim()==='Guiones')t.classList.add('on');});
+      // set week offset so day picker shows correct week
+      weekOffset=offset;
+      WEEK_DATES=getWeekDates(weekOffset);
+      DAYS=WEEK_DATES.map(function(d){return d.label;});
+      // open form and pre-select the date
+      var form=document.getElementById('sform');
+      editIdx=-1;
+      document.getElementById('ftitle').textContent='Nuevo guion';
+      ['ft','fh','fn'].forEach(function(id){document.getElementById(id).value='';});
+      document.getElementById('fp').value='IG';
+      document.getElementById('fpilar').value='conexion';
+      document.getElementById('fs').value='borrador';
+      document.getElementById('fhora').value='';
+      form.classList.add('on');
+      // render day picker and auto-select the date
+      dpOffset=offset;
+      dpSelDate=new Date(dt.getFullYear(),dt.getMonth(),dt.getDate());
+      dpRender();
+      // set hidden input value
+      var months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      var days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+      var label=days[dt.getDay()]+' '+dt.getDate()+' '+months[dt.getMonth()];
+      var fdia=document.getElementById('fdia');
+      if(fdia)fdia.value=label;
+      var sel=document.getElementById('dpSelected');
+      if(sel)sel.textContent='📅 '+label+' seleccionado';
+      setTimeout(function(){form.scrollIntoView({behavior:'smooth',block:'nearest'});},100);
+    };
+  })(date,targetOffset,targetDayIdx);
+  wrap.appendChild(guionBtn);
+}
+
+function goToCalDay(offset,dayIdx){
+  weekOffset=offset;
+  WEEK_DATES=getWeekDates(weekOffset);
+  DAYS=WEEK_DATES.map(function(d){return d.label;});
+  day=dayIdx;
+  loadWeekLabel();buildNav();buildRows();
+  // switch to semana tab
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('agenda').classList.add('on');
+  document.querySelectorAll('.tab').forEach(function(t){if(t.textContent.trim()==='Semana')t.classList.add('on');});
+}
+
+function goToDay(idx){
+  day=idx;
+  buildNav();buildRows();
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('on');});
+  document.getElementById('agenda').classList.add('on');
+  document.querySelectorAll('.tab').forEach(function(t){if(t.textContent.trim()==='Semana')t.classList.add('on');});
+}
+
+function calPrev(){
+  calMonth--;if(calMonth<0){calMonth=11;calYear--;}
+  buildCalendario();
+}
+function calNext(){
+  calMonth++;if(calMonth>11){calMonth=0;calYear++;}
+  buildCalendario();
+}
+
+// ── NOTAS & METAS ────────────────────────────────────────
+var notas=[];
+var metas=[];
+var LS_NOTAS='meiby_notas';
+var LS_METAS='meiby_metas';
+
+function loadNotas(){
+  try{var n=localStorage.getItem(LS_NOTAS);if(n)notas=JSON.parse(n);}catch(e){}
+  try{var m=localStorage.getItem(LS_METAS);if(m)metas=JSON.parse(m);}catch(e){}
+  // Load metas from Supabase in background
+  fetch(SUPA_URL+'/rest/v1/metas?select=*&order=orden',{headers:SH})
+    .then(function(r){return r.json();})
+    .then(function(rm){
+      if(rm&&rm.length>0){
+        metas=rm.map(function(r){return{id:r.id,text:r.texto,done:r.hecho||false};});
+        try{localStorage.setItem(LS_METAS,JSON.stringify(metas));}catch(e){}
+        renderNotas();updateMetaCard();
+      }
+    }).catch(function(){});
+}
+function saveNotas(){
+  try{localStorage.setItem(LS_NOTAS,JSON.stringify(notas));localStorage.setItem(LS_METAS,JSON.stringify(metas));}catch(e){}
+}
+function saveMeta(meta,idx){
+  if(meta.id){
+    fetch(SUPA_URL+'/rest/v1/metas?id=eq.'+meta.id,{method:'PATCH',headers:Object.assign({},SH,{'Prefer':'return=minimal'}),body:JSON.stringify({texto:meta.text,hecho:meta.done||false,orden:idx})}).catch(function(){});
+  } else {
+    fetch(SUPA_URL+'/rest/v1/metas',{method:'POST',headers:Object.assign({},SH,{'Prefer':'return=representation'}),body:JSON.stringify({texto:meta.text,hecho:meta.done||false,orden:idx})})
+      .then(function(r){return r.json();})
+      .then(function(res){if(res&&res[0]&&res[0].id){metas[idx].id=res[0].id;saveNotas();}})
+      .catch(function(){});
+  }
+}
+function deleteMeta(i){
+  var id=metas[i]?metas[i].id:null;
+  metas.splice(i,1);saveNotas();renderNotas();updateMetaCard();
+  if(id)fetch(SUPA_URL+'/rest/v1/metas?id=eq.'+id,{method:'DELETE',headers:SH}).catch(function(){});
+}
+
+function renderNotas(){
+  // metas
+  var ml=document.getElementById('metasList');
+  if(!ml)return;
+  ml.innerHTML='';
+  var wl=document.getElementById('metasWeekLabel');
+  if(wl)wl.textContent=WEEK_DATES[0].short+' '+WEEK_DATES[0].date.getDate()+' — '+WEEK_DATES[6].short+' '+WEEK_DATES[6].date.getDate();
+  metas.forEach(function(m,i){
+    var el=document.createElement('div');
+    el.className='meta-item '+(m.done?'done':'pending');
+    el.innerHTML='<div class="meta-num">'+(i+1)+'</div><div class="meta-text-el">'+m.text+'</div><button class="meta-del" onclick="deleteMeta('+i+')">✕</button>';
+    el.querySelector('.meta-num').onclick=function(){metas[i].done=!metas[i].done;saveNotas();saveMeta(metas[i],i);renderNotas();updateMetaCard();};
+    ml.appendChild(el);
+  });
+  // notas
+  var nl=document.getElementById('notasList');
+  if(!nl)return;
+  nl.innerHTML='';
+  var NOTA_COLORS=['a','p','g','r'];
+  notas.forEach(function(n,i){
+    var el=document.createElement('div');
+    el.className='nota-item '+(n.color||'p');
+    el.innerHTML='<div class="nota-color-dot"></div><div class="nota-time">'+n.time+'</div><textarea class="nota-text-el" rows="2">'+n.text+'</textarea><button class="nota-del" onclick="deleteNota('+i+')">✕</button>';
+    el.querySelector('textarea').oninput=function(){notas[i].text=this.value;saveNotas();};
+    el.querySelector('.nota-color-dot').onclick=function(e){
+      e.stopPropagation();
+      var idx=NOTA_COLORS.indexOf(notas[i].color||'p');
+      notas[i].color=NOTA_COLORS[(idx+1)%NOTA_COLORS.length];
+      saveNotas();renderNotas();
+    };
+    nl.appendChild(el);
+  });
+}
+
+function closeMiniModal(){var m=document.getElementById('metaMiniModal');if(m)m.remove();}
+function confirmMeta(){
+  var inp=document.getElementById('metaInp');
+  var txt=inp?inp.value.trim():'';
+  closeMiniModal();
+  if(!txt)return;
+  var idx=metas.length;
+  metas.push({text:txt,done:false});
+  saveNotas();renderNotas();updateMetaCard();
+  saveMeta(metas[idx],idx);
+}
+function addMeta(){
+  closeMiniModal();
+  var mini=document.createElement('div');
+  mini.id='metaMiniModal';
+  mini.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#fff;border-radius:20px 20px 0 0;padding:24px 20px 40px;box-shadow:0 -8px 40px rgba(0,0,0,0.15);z-index:9999;';
+  var title=document.createElement('div');
+  title.style.cssText='font-size:15px;font-weight:700;color:#222;margin-bottom:14px;';
+  title.textContent='🎯 Nueva meta';
+  var inp=document.createElement('input');
+  inp.id='metaInp';
+  inp.type='text';
+  inp.placeholder='Ej: Grabar 5 reels esta semana';
+  inp.style.cssText='width:100%;padding:12px 14px;border:1.5px solid #d4d0f5;border-radius:10px;font-size:14px;font-family:inherit;box-sizing:border-box;outline:none;margin-bottom:14px;';
+  var btns=document.createElement('div');
+  btns.style.cssText='display:flex;gap:10px;';
+  var cancelBtn=document.createElement('button');
+  cancelBtn.style.cssText='flex:1;padding:12px;border-radius:10px;border:1px solid #eee;background:#fff;font-size:13px;font-family:inherit;cursor:pointer;';
+  cancelBtn.textContent='Cancelar';
+  cancelBtn.onclick=closeMiniModal;
+  var addBtn=document.createElement('button');
+  addBtn.style.cssText='flex:2;padding:12px;border-radius:10px;border:none;background:#534AB7;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;';
+  addBtn.textContent='Agregar meta';
+  addBtn.onclick=confirmMeta;
+  btns.appendChild(cancelBtn);btns.appendChild(addBtn);
+  mini.appendChild(title);mini.appendChild(inp);mini.appendChild(btns);
+  document.body.appendChild(mini);
+  setTimeout(function(){inp.focus();},100);
+}
+function addNota(){
+  var now=new Date();
+  var days=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var time=days[now.getDay()]+' · '+now.getHours()+':'+(now.getMinutes()<10?'0':'')+now.getMinutes();
+  notas.unshift({text:'',color:'p',time:time});
+  saveNotas();renderNotas();
+  setTimeout(function(){var ta=document.querySelectorAll('.nota-text-el')[0];if(ta)ta.focus();},100);
+}
+function deleteNota(i){notas.splice(i,1);saveNotas();renderNotas();}
+
+// ── INSPIRACION TOGGLE ───────────────────────────────────
+var inspoOpen=false;
+var inspocat='hooks';
+var inspoOffset=0;
+var INSPO_PER_PAGE=5;
+
+function toggleInspo(){
+  inspoOpen=!inspoOpen;
+  var panel=document.getElementById('inspoPanel');
+  var arrow=document.getElementById('inspoArrow');
+  if(panel)panel.classList.toggle('open',inspoOpen);
+  if(arrow)arrow.classList.toggle('open',inspoOpen);
+  if(inspoOpen)renderInspoPanel();
+}
+
+function switchInspocat(cat,btn){
+  inspocat=cat;inspoOffset=0;
+  document.querySelectorAll('.icat').forEach(function(b){b.classList.remove('on');});
+  btn.classList.add('on');
+  renderInspoPanel();
+}
+
+function renderInspoPanel(){
+  var el=document.getElementById('inspoContent');
+  if(!el)return;
+  var arr=inspocat==='frases'?FRASES:inspocat==='afirmaciones'?AFIRMACIONES:inspocat==='hooks'?HOOKS:TIPS;
+  var cls=inspocat==='frases'?'':inspocat==='afirmaciones'?' af':inspocat==='hooks'?' hk':' tp';
+  el.innerHTML='';
+  var slice=arr.slice(inspoOffset,inspoOffset+INSPO_PER_PAGE);
+  slice.forEach(function(item,i){
+    // HOOKS are objects {tag,text}, others are strings
+    var txt=typeof item==='object'?item.text:item;
+    var tag=typeof item==='object'&&item.tag?'<div class="inspo-fnum" style="text-transform:uppercase;letter-spacing:1px;">'+item.tag+'</div>':'<div class="inspo-fnum">'+(inspoOffset+i+1)+' de '+arr.length+'</div>';
+    var div=document.createElement('div');
+    div.className='inspo-frase'+cls;
+    div.innerHTML=tag+'<div class="inspo-ftxt">'+txt+'</div><button class="inspo-fcopy">Copiar</button>';
+    (function(t){div.querySelector('.inspo-fcopy').onclick=function(){
+      navigator.clipboard.writeText(t).then(function(){}).catch(function(){});
+      var btn=div.querySelector('.inspo-fcopy');
+      btn.textContent='✓';btn.style.color='#1D9E75';
+      setTimeout(function(){btn.textContent='Copiar';btn.style.color='';},2000);
+    };})(txt);
+    el.appendChild(div);
+  });
+}
+
+function inspoMore(){
+  var arr=inspocat==='frases'?FRASES:inspocat==='afirmaciones'?AFIRMACIONES:inspocat==='hooks'?HOOKS:TIPS;
+  inspoOffset=(inspoOffset+INSPO_PER_PAGE)%arr.length;
+  renderInspoPanel();
+}
+
+// ── DAY PICKER ───────────────────────────────────────────
+var dpOffset=0;
+var dpSelDate=null;
+
+function dpRender(){
+  var months=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var now=new Date();
+  var todayNum=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+  var wd=getWeekDates(dpOffset);
+  var lbl=document.getElementById('dpWeekLabel');
+  if(lbl){
+    var m=wd[0].date;var s=wd[6].date;
+    lbl.textContent=wd[0].short+' '+m.getDate()+' — '+wd[6].short+' '+s.getDate()+' '+months[s.getMonth()];
+  }
+  var grid=document.getElementById('dpDays');
+  if(!grid)return;
+  grid.innerHTML='';
+  wd.forEach(function(d){
+    var dNum=d.date.getFullYear()*10000+(d.date.getMonth()+1)*100+d.date.getDate();
+    var isPast=dNum<todayNum;
+    var isToday=dNum===todayNum;
+    var isSel=dpSelDate&&dpSelDate.getFullYear()===d.date.getFullYear()&&dpSelDate.getMonth()===d.date.getMonth()&&dpSelDate.getDate()===d.date.getDate();
+    var div=document.createElement('div');
+    div.className='dp-day'+(isPast?' past':'')+(isToday?' dp-today':'')+(isSel?' dp-sel':'');
+    div.innerHTML='<div class="dp-short">'+d.short+'</div><div class="dp-num">'+d.date.getDate()+'</div>';
+    if(!isPast){
+      (function(dt,dayLabel){
+        div.onclick=function(){
+          dpSelDate=dt;
+          var label=dayLabel+' '+dt.getDate()+' '+months[dt.getMonth()];
+          var fdia=document.getElementById('fdia');
+          if(fdia)fdia.value=label;
+          var sel=document.getElementById('dpSelected');
+          if(sel)sel.textContent='📅 '+label+' seleccionado';
+          dpRender();
+        };
+      })(d.date,d.short);
+    }
+    grid.appendChild(div);
+  });
+}
+function dpPrev(){dpOffset--;if(dpOffset<0)dpOffset=0;dpRender();}
+function dpNext(){dpOffset++;dpRender();}
+function dpReset(){dpOffset=0;dpSelDate=null;var s=document.getElementById('dpSelected');if(s)s.textContent='Toca un día para seleccionar';dpRender();}
+
+</script>
+</body>
+</html>
